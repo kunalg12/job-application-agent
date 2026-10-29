@@ -9,16 +9,20 @@ from backend.app.models import Job, Application, UserProfile, AppSettings, Audit
 class Database:
     def __init__(self, db_path: str):
         self.db_path = db_path
+        self._initialized = False
         os.makedirs(os.path.dirname(os.path.abspath(db_path)), exist_ok=True)
 
     @asynccontextmanager
     async def get_connection(self):
+        if not self._initialized:
+            await self._run_init_tables()
+            self._initialized = True
         async with aiosqlite.connect(self.db_path) as db:
             db.row_factory = aiosqlite.Row
             yield db
 
-    async def init_db(self) -> None:
-        async with self.get_connection() as db:
+    async def _run_init_tables(self) -> None:
+        async with aiosqlite.connect(self.db_path) as db:
             await db.execute("""
                 CREATE TABLE IF NOT EXISTS jobs (
                     id TEXT PRIMARY KEY,
@@ -82,6 +86,10 @@ class Database:
                 )
             """)
             await db.commit()
+
+    async def init_db(self) -> None:
+        await self._run_init_tables()
+        self._initialized = True
 
     async def save_job(self, job: Job) -> None:
         async with self.get_connection() as db:
