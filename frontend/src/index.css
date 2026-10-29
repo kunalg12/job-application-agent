@@ -2,7 +2,152 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+@layer base {
+  :root {
+    color-scheme: light dark;
+  }
+
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #F2F2F7;
+    color: #000000;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    body {
+      background-color: #000000;
+      color: #FFFFFF;
+    }
+  }
+}
+
+/* Translucent Apple Materials */
+.material-regular {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+@media (prefers-color-scheme: dark) {
+  .material-regular {
+    background: rgba(28, 28, 30, 0.82);
+  }
+}
+
+.material-thin {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+}
+
+@media (prefers-color-scheme: dark) {
+  .material-thin {
+    background: rgba(28, 28, 30, 0.65);
+  }
+}
+
+.material-thick {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+}
+
+@media (prefers-color-scheme: dark) {
+  .material-thick {
+    background: rgba(36, 36, 38, 0.92);
+  }
+}
+
+/* Apple Buttons */
+.btn-apple-primary {
+  background: #007AFF;
+  color: #FFFFFF;
+  font-weight: 600;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+  user-select: none;
+}
+.btn-apple-primary:hover {
+  opacity: 0.92;
+}
+.btn-apple-primary:active {
+  transform: scale(0.97);
+  opacity: 0.82;
+}
+
+.btn-apple-secondary {
+  background: rgba(0, 122, 255, 0.10);
+  color: #007AFF;
+  font-weight: 600;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+  user-select: none;
+}
+.btn-apple-secondary:hover {
+  background: rgba(0, 122, 255, 0.16);
+}
+.btn-apple-secondary:active {
+  transform: scale(0.97);
+}
+
+@media (prefers-color-scheme: dark) {
+  .btn-apple-secondary {
+    background: rgba(10, 132, 255, 0.15);
+    color: #0A84FF;
+  }
+  .btn-apple-secondary:hover {
+    background: rgba(10, 132, 255, 0.22);
+  }
+}
+
+/* Apple Native Input */
+.input-apple {
+  background: rgba(120, 120, 128, 0.10);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 15px;
+  transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+.input-apple:focus {
+  outline: none;
+  border-color: #007AFF;
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.22);
+}
+
+@media (prefers-color-scheme: dark) {
+  .input-apple {
+    background: rgba(120, 120, 128, 0.20);
+    color: #FFFFFF;
+  }
+  .input-apple:focus {
+    background: #1C1C1E;
+    border-color: #0A84FF;
+    box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.28);
+  }
+}
+
+/* Apple Subtle Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(120, 120, 128, 0.28);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(120, 120, 128, 0.45);
 }

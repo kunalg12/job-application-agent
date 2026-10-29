@@ -21,54 +21,55 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenProfile,
 }) => {
   return (
-    <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <header className="sticky top-0 z-40 material-regular border-b border-[rgba(60,60,67,0.12)] dark:border-[rgba(84,84,88,0.35)] transition-colors">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
         
-        {/* Brand */}
+        {/* Brand with Apple Squircle */}
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center text-white shadow-sm shadow-sky-500/20">
-            <Bot className="w-5 h-5" />
+          <div className="w-8 h-8 rounded-[8px] bg-gradient-to-br from-[#007AFF] to-[#5856D6] flex items-center justify-center text-white shadow-apple-1">
+            <Bot className="w-4 h-4" strokeWidth={1.75} />
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <span className="font-semibold text-slate-900 tracking-tight text-lg">Job Hunter Agent</span>
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1 animate-pulse"></span>
+              <span className="font-semibold text-[16px] tracking-tight text-black dark:text-white">
+                Job Hunter
+              </span>
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-[6px] text-[11px] font-medium bg-[#34C759]/10 text-[#34C759] dark:bg-[#30D158]/15 dark:text-[#30D158]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#34C759] dark:bg-[#30D158] mr-1 animate-pulse"></span>
                 Active
               </span>
             </div>
-            <p className="text-xs text-slate-500 hidden sm:block">Autonomous Job Discovery & Outreach Copilot</p>
           </div>
         </div>
 
-        {/* Tab Navigation */}
-        <nav className="hidden md:flex items-center space-x-1 bg-slate-100 p-1 rounded-xl">
+        {/* macOS Style Segmented Control Tab Navigation */}
+        <nav className="hidden md:flex items-center bg-[rgba(120,120,128,0.12)] dark:bg-[rgba(120,120,128,0.24)] p-0.5 rounded-[10px] space-x-0.5">
           <button
             onClick={() => onTabChange('feed')}
-            className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all ${
+            className={`px-3 py-1 rounded-[8px] text-[13px] font-medium transition-all duration-150 ${
               activeTab === 'feed'
-                ? 'bg-white text-slate-900 shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white dark:bg-[#2C2C2E] text-black dark:text-white shadow-apple-1'
+                : 'text-[rgba(60,60,67,0.7)] dark:text-[rgba(235,235,245,0.7)] hover:text-black dark:hover:text-white'
             }`}
           >
             Job Feed
           </button>
           <button
             onClick={() => onTabChange('queue')}
-            className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all ${
+            className={`px-3 py-1 rounded-[8px] text-[13px] font-medium transition-all duration-150 ${
               activeTab === 'queue'
-                ? 'bg-white text-slate-900 shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white dark:bg-[#2C2C2E] text-black dark:text-white shadow-apple-1'
+                : 'text-[rgba(60,60,67,0.7)] dark:text-[rgba(235,235,245,0.7)] hover:text-black dark:hover:text-white'
             }`}
           >
-            Review & Apply Queue
+            Review Queue
           </button>
           <button
             onClick={() => onTabChange('tracker')}
-            className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all ${
+            className={`px-3 py-1 rounded-[8px] text-[13px] font-medium transition-all duration-150 ${
               activeTab === 'tracker'
-                ? 'bg-white text-slate-900 shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white dark:bg-[#2C2C2E] text-black dark:text-white shadow-apple-1'
+                : 'text-[rgba(60,60,67,0.7)] dark:text-[rgba(235,235,245,0.7)] hover:text-black dark:hover:text-white'
             }`}
           >
             Applications Tracker
@@ -79,12 +80,16 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex items-center space-x-2 sm:space-x-3">
           
           {/* Mode Pill */}
-          <div className={`hidden lg:flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-medium border ${
+          <div className={`hidden lg:flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium transition-colors ${
             autonomousMode
-              ? 'bg-amber-50 text-amber-800 border-amber-300'
-              : 'bg-slate-100 text-slate-700 border-slate-200'
+              ? 'bg-[#FF9500]/10 text-[#FF9500] dark:bg-[#FF9F0A]/15 dark:text-[#FF9F0A]'
+              : 'bg-[rgba(120,120,128,0.12)] text-[rgba(60,60,67,0.85)] dark:text-[rgba(235,235,245,0.85)]'
           }`}>
-            {autonomousMode ? <Zap className="w-3.5 h-3.5 text-amber-600" /> : <Shield className="w-3.5 h-3.5 text-slate-500" />}
+            {autonomousMode ? (
+              <Zap className="w-3.5 h-3.5 text-[#FF9500] dark:text-[#FF9F0A]" strokeWidth={1.75} />
+            ) : (
+              <Shield className="w-3.5 h-3.5 text-[#8E8E93]" strokeWidth={1.75} />
+            )}
             <span>{autonomousMode ? 'Auto-Pilot Mode' : 'Supervised (1-Click)'}</span>
           </div>
 
@@ -92,27 +97,29 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button
             onClick={onScan}
             disabled={isScanning}
-            className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 text-xs sm:text-sm font-medium rounded-lg bg-sky-600 text-white hover:bg-sky-700 active:scale-95 transition-all shadow-sm disabled:opacity-60"
+            className="btn-apple-secondary text-[13px] px-3 py-1.5 h-8 gap-1.5 cursor-pointer disabled:opacity-50"
+            title="Scan remote job boards"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isScanning ? 'animate-spin' : ''}`} />
-            <span>{isScanning ? 'Scanning...' : 'Scan Jobs'}</span>
+            <RefreshCw className={`w-3.5 h-3.5 ${isScanning ? 'animate-spin' : ''}`} strokeWidth={1.75} />
+            <span className="hidden sm:inline">{isScanning ? 'Scanning...' : 'Scan Jobs'}</span>
           </button>
 
-          {/* Profile & Settings Buttons */}
+          {/* Profile Button */}
           <button
             onClick={onOpenProfile}
+            className="w-8 h-8 rounded-full bg-[rgba(120,120,128,0.12)] hover:bg-[rgba(120,120,128,0.2)] text-black dark:text-white flex items-center justify-center transition-all active:scale-95 cursor-pointer"
             title="Profile & Resume"
-            className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
           >
-            <User className="w-4 h-4" />
+            <User className="w-4 h-4" strokeWidth={1.75} />
           </button>
-          
+
+          {/* Settings Button */}
           <button
             onClick={onOpenSettings}
-            title="Settings & Credentials"
-            className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
+            className="w-8 h-8 rounded-full bg-[rgba(120,120,128,0.12)] hover:bg-[rgba(120,120,128,0.2)] text-black dark:text-white flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+            title="Outreach Settings"
           >
-            <SettingsIcon className="w-4 h-4" />
+            <SettingsIcon className="w-4 h-4" strokeWidth={1.75} />
           </button>
         </div>
 

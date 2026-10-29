@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, User, Upload, CheckCircle2, FileText, Sparkles } from 'lucide-react';
+import { X, User, Upload, CheckCircle2, FileText } from 'lucide-react';
 import { UserProfile } from '../types';
 
 interface ProfileModalProps {
@@ -58,137 +58,162 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
-      <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 animate-in fade-in duration-200">
+      <div className="bg-white dark:bg-[#1C1C1E] rounded-[20px] shadow-apple-5 max-w-2xl w-full border border-[rgba(0,0,0,0.08)] dark:border-[rgba(255,255,255,0.12)] overflow-hidden flex flex-col max-h-[90vh]">
         
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <User className="w-5 h-5 text-sky-600" />
-            <h3 className="font-semibold text-slate-900 text-lg">Candidate Resume & Fit Profile</h3>
+        <div className="px-6 py-4 border-b border-[rgba(60,60,67,0.12)] dark:border-[rgba(84,84,88,0.35)] flex items-center justify-between">
+          <div className="flex items-center space-x-2.5">
+            <div className="w-7 h-7 rounded-[8px] bg-[#007AFF]/10 flex items-center justify-center text-[#007AFF] dark:text-[#0A84FF]">
+              <User className="w-4 h-4" strokeWidth={1.75} />
+            </div>
+            <h3 className="font-semibold text-black dark:text-white text-[17px] tracking-tight">
+              Candidate Resume & Profile
+            </h3>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
-            <X className="w-5 h-5" />
+          <button 
+            onClick={onClose} 
+            className="w-7 h-7 rounded-full bg-[rgba(120,120,128,0.12)] hover:bg-[rgba(120,120,128,0.2)] text-[rgba(60,60,67,0.7)] dark:text-[rgba(235,235,245,0.7)] flex items-center justify-center cursor-pointer transition-all active:scale-95"
+          >
+            <X className="w-4 h-4" strokeWidth={1.75} />
           </button>
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto flex-1 text-sm">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto flex-1 text-[13px]">
           
-          {/* Resume Upload banner */}
-          <div className="p-4 bg-sky-50/60 rounded-xl border border-sky-100 flex items-center justify-between">
+          {/* Resume Upload Box (Apple Style) */}
+          <div className="p-4 bg-[rgba(0,122,255,0.05)] dark:bg-[rgba(10,132,255,0.10)] rounded-[14px] border border-[#007AFF]/20 flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <FileText className="w-8 h-8 text-sky-600 shrink-0" />
+              <div className="w-10 h-10 rounded-[10px] bg-[#007AFF]/15 flex items-center justify-center text-[#007AFF] dark:text-[#0A84FF]">
+                <FileText className="w-5 h-5" strokeWidth={1.75} />
+              </div>
               <div>
-                <span className="font-semibold text-slate-900 text-xs block">Active Resume File</span>
-                <span className="text-xs text-slate-500 truncate max-w-xs block">
-                  {formData.resume_file_path || '/home/kunal/Downloads/Kunal_Gursal_Resume.pdf'}
+                <span className="font-semibold text-black dark:text-white text-[13px] block">
+                  Active Resume PDF
+                </span>
+                <span className="text-[12px] text-[rgba(60,60,67,0.65)] dark:text-[rgba(235,235,245,0.65)] truncate max-w-xs block font-mono">
+                  {formData.resume_file_path || 'Kunal_Gursal_Resume.pdf'}
                 </span>
               </div>
             </div>
 
-            <label className="cursor-pointer inline-flex items-center space-x-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-xs">
-              <Upload className="w-3.5 h-3.5 text-sky-600" />
-              <span>{isUploading ? 'Parsing...' : 'Upload PDF'}</span>
+            <label className="btn-apple-secondary text-[12px] px-3.5 py-1.5 h-8 gap-1.5 cursor-pointer">
+              <Upload className="w-3.5 h-3.5" strokeWidth={1.75} />
+              <span>{isUploading ? 'Parsing...' : 'Upload New PDF'}</span>
               <input type="file" accept=".pdf,.txt" onChange={handleFileUpload} className="hidden" />
             </label>
           </div>
 
           {uploadSuccess && (
-            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center space-x-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span>Resume re-parsed successfully! Updated skills and candidate metadata.</span>
+            <div className="p-3 bg-[#34C759]/10 border border-[#34C759]/20 rounded-[10px] text-[12px] text-[#34C759] dark:text-[#30D158] flex items-center space-x-2">
+              <CheckCircle2 className="w-4 h-4 shrink-0" strokeWidth={2} />
+              <span>Resume parsed! Updated skills and candidate metadata extracted.</span>
             </div>
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Full Name</label>
+              <label className="block text-[12px] font-semibold text-[rgba(60,60,67,0.7)] dark:text-[rgba(235,235,245,0.7)] mb-1">
+                Full Name
+              </label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                className="input-apple w-full px-3 py-2 text-[14px]"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Target Title</label>
+              <label className="block text-[12px] font-semibold text-[rgba(60,60,67,0.7)] dark:text-[rgba(235,235,245,0.7)] mb-1">
+                Target Title
+              </label>
               <input
                 type="text"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                className="input-apple w-full px-3 py-2 text-[14px]"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Email</label>
+              <label className="block text-[12px] font-semibold text-[rgba(60,60,67,0.7)] dark:text-[rgba(235,235,245,0.7)] mb-1">
+                Email
+              </label>
               <input
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                className="input-apple w-full px-3 py-2 text-[14px]"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">Phone</label>
+              <label className="block text-[12px] font-semibold text-[rgba(60,60,67,0.7)] dark:text-[rgba(235,235,245,0.7)] mb-1">
+                Phone
+              </label>
               <input
                 type="text"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                className="input-apple w-full px-3 py-2 text-[14px]"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">LinkedIn Profile</label>
+              <label className="block text-[12px] font-semibold text-[rgba(60,60,67,0.7)] dark:text-[rgba(235,235,245,0.7)] mb-1">
+                LinkedIn Profile
+              </label>
               <input
                 type="text"
                 value={formData.linkedin || ''}
                 onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                className="input-apple w-full px-3 py-2 text-[14px]"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-700 mb-1">GitHub Profile</label>
+              <label className="block text-[12px] font-semibold text-[rgba(60,60,67,0.7)] dark:text-[rgba(235,235,245,0.7)] mb-1">
+                GitHub Profile
+              </label>
               <input
                 type="text"
                 value={formData.github || ''}
                 onChange={(e) => setFormData({ ...formData, github: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                className="input-apple w-full px-3 py-2 text-[14px]"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">Professional Summary</label>
+            <label className="block text-[12px] font-semibold text-[rgba(60,60,67,0.7)] dark:text-[rgba(235,235,245,0.7)] mb-1">
+              Professional Summary
+            </label>
             <textarea
               rows={3}
               value={formData.summary}
               onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+              className="input-apple w-full px-3 py-2 text-[14px] leading-relaxed resize-none"
             />
           </div>
 
+          {/* Skill Tag Editor */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="block text-xs font-medium text-slate-700">
+              <label className="block text-[12px] font-semibold text-[rgba(60,60,67,0.7)] dark:text-[rgba(235,235,245,0.7)]">
                 Skills & Technical Competencies ({formData.skills.length})
               </label>
-              <span className="text-[11px] text-slate-400">Click × to remove, or add new below</span>
+              <span className="text-[11px] text-[rgba(60,60,67,0.5)]">Press Enter or click Add</span>
             </div>
 
-            {/* Add Skill Input */}
             <div className="flex gap-2 mb-2">
               <input
                 type="text"
                 id="new-skill-input"
-                placeholder="Type a skill (e.g. PyTorch, Kubernetes) and click Add..."
-                className="flex-1 px-3 py-1.5 border border-slate-300 rounded-lg text-xs"
+                placeholder="Type a skill (e.g. PyTorch, Kubernetes)..."
+                className="input-apple flex-1 px-3 py-1.5 text-[13px]"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -209,15 +234,15 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     input.value = '';
                   }
                 }}
-                className="px-3 py-1.5 bg-slate-800 text-white rounded-lg text-xs font-medium hover:bg-slate-900"
+                className="btn-apple-secondary text-[12px] px-3.5 py-1.5 cursor-pointer"
               >
                 Add Skill
               </button>
             </div>
 
-            <div className="flex flex-wrap gap-1.5 p-3 bg-slate-50 rounded-xl border border-slate-200 max-h-36 overflow-y-auto">
+            <div className="flex flex-wrap gap-1.5 p-3 bg-[rgba(120,120,128,0.06)] dark:bg-[rgba(120,120,128,0.12)] rounded-[12px] max-h-36 overflow-y-auto">
               {formData.skills.map((skill) => (
-                <span key={skill} className="inline-flex items-center space-x-1 px-2.5 py-1 bg-white border border-slate-200 text-slate-800 rounded-lg text-xs font-medium shadow-2xs">
+                <span key={skill} className="inline-flex items-center space-x-1 px-2.5 py-1 bg-white dark:bg-[#2C2C2E] shadow-apple-1 text-black dark:text-white rounded-[6px] text-[12px] font-medium">
                   <span>{skill}</span>
                   <button
                     type="button"
@@ -227,30 +252,30 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                         skills: formData.skills.filter((s) => s !== skill),
                       });
                     }}
-                    className="text-slate-400 hover:text-rose-600 font-bold ml-1"
+                    className="text-[rgba(60,60,67,0.4)] hover:text-[#FF3B30] dark:hover:text-[#FF453A] font-bold ml-1 cursor-pointer"
                   >
                     ×
                   </button>
                 </span>
               ))}
               {formData.skills.length === 0 && (
-                <span className="text-xs text-slate-400 italic">No skills listed. Type above to add skills.</span>
+                <span className="text-[12px] text-[rgba(60,60,67,0.5)] italic">No skills listed. Type above to add.</span>
               )}
             </div>
           </div>
 
-          <div className="flex justify-end space-x-3 pt-3 border-t border-slate-100">
+          <div className="flex justify-end space-x-2 pt-3 border-t border-[rgba(60,60,67,0.12)] dark:border-[rgba(84,84,88,0.35)]">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm text-slate-600 hover:text-slate-800 font-medium"
+              className="btn-apple-secondary text-[14px] px-4 py-2 cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSaving}
-              className="px-5 py-2 text-sm font-semibold bg-sky-600 text-white rounded-xl hover:bg-sky-700 disabled:opacity-60 shadow-sm"
+              className="btn-apple-primary text-[14px] px-5 py-2 cursor-pointer disabled:opacity-50"
             >
               {isSaving ? 'Saving...' : 'Save Profile'}
             </button>

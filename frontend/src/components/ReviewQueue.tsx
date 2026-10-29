@@ -88,27 +88,35 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({
 
   if (applications.length === 0) {
     return (
-      <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center max-w-xl mx-auto my-8">
-        <Sparkles className="w-12 h-12 text-sky-500 mx-auto mb-3 opacity-80" />
-        <h3 className="text-lg font-semibold text-slate-900 mb-1">Your Review Queue is Empty</h3>
-        <p className="text-sm text-slate-500 mb-6">
-          Head over to the <strong>Job Feed</strong> tab and click "Stage for Apply" on any job to automatically generate tailored outreach emails and cover letters.
+      <div className="bg-white dark:bg-[#1C1C1E] rounded-[20px] shadow-apple-2 border border-[rgba(0,0,0,0.04)] dark:border-[rgba(255,255,255,0.08)] p-12 text-center max-w-xl mx-auto my-8">
+        <div className="w-12 h-12 rounded-[14px] bg-[#007AFF]/10 flex items-center justify-center text-[#007AFF] mx-auto mb-3">
+          <Sparkles className="w-6 h-6" strokeWidth={1.75} />
+        </div>
+        <h3 className="text-[18px] font-semibold text-black dark:text-white mb-1">
+          Review Queue is Empty
+        </h3>
+        <p className="text-[13px] text-[rgba(60,60,67,0.65)] dark:text-[rgba(235,235,245,0.65)] max-w-sm mx-auto leading-relaxed">
+          Switch to <strong>Job Feed</strong> and click "Stage" on any job to automatically generate tailored outreach emails and cover letters.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden flex flex-col md:flex-row h-[780px]">
+    <div className="bg-white dark:bg-[#1C1C1E] rounded-[20px] shadow-apple-3 border border-[rgba(0,0,0,0.06)] dark:border-[rgba(255,255,255,0.08)] overflow-hidden flex flex-col md:flex-row h-[780px]">
       
-      {/* Left Sidebar: Staged Application List */}
-      <div className="w-full md:w-80 lg:w-96 border-r border-slate-200 flex flex-col bg-slate-50/50">
-        <div className="p-4 border-b border-slate-200 flex items-center justify-between">
-          <span className="font-semibold text-sm text-slate-900">Staged Applications ({applications.length})</span>
-          <span className="text-xs text-slate-500">Sorted by fit</span>
+      {/* Left Sidebar: Staged Application List (macOS Style) */}
+      <div className="w-full md:w-80 lg:w-96 border-r border-[rgba(60,60,67,0.12)] dark:border-[rgba(84,84,88,0.35)] flex flex-col bg-[rgba(120,120,128,0.04)] dark:bg-[rgba(120,120,128,0.08)]">
+        <div className="p-3.5 border-b border-[rgba(60,60,67,0.12)] dark:border-[rgba(84,84,88,0.35)] flex items-center justify-between">
+          <span className="font-semibold text-[13px] text-black dark:text-white">
+            Staged Applications ({applications.length})
+          </span>
+          <span className="text-[11px] text-[rgba(60,60,67,0.6)] dark:text-[rgba(235,235,245,0.6)]">
+            Sorted by fit
+          </span>
         </div>
 
-        <div className="overflow-y-auto flex-1 divide-y divide-slate-100">
+        <div className="overflow-y-auto flex-1 p-2 space-y-1">
           {applications.map((app) => {
             const isSelected = app.id === selectedApp?.id;
             const isSent = app.status === 'EMAIL_SENT' || app.status === 'FORM_APPLIED';
@@ -117,35 +125,47 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({
               <div
                 key={app.id}
                 onClick={() => setSelectedAppId(app.id)}
-                className={`p-4 cursor-pointer transition-colors ${
-                  isSelected ? 'bg-sky-50/80 border-l-4 border-sky-600' : 'hover:bg-slate-100/60'
+                className={`p-3 rounded-[10px] cursor-pointer transition-all duration-150 ${
+                  isSelected 
+                    ? 'bg-[#007AFF] text-white shadow-apple-1' 
+                    : 'hover:bg-[rgba(120,120,128,0.10)] text-black dark:text-white'
                 }`}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider truncate">
+                  <span className={`text-[11px] font-semibold uppercase tracking-wider truncate ${
+                    isSelected ? 'text-white/80' : 'text-[rgba(60,60,67,0.65)] dark:text-[rgba(235,235,245,0.65)]'
+                  }`}>
                     {app.company}
                   </span>
-                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                    app.match_score >= 80 ? 'bg-emerald-100 text-emerald-800' : 'bg-sky-100 text-sky-800'
+                  <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded-[4px] ${
+                    isSelected 
+                      ? 'bg-white/20 text-white' 
+                      : app.match_score >= 80 
+                      ? 'bg-[#34C759]/15 text-[#34C759] dark:text-[#30D158]' 
+                      : 'bg-[#007AFF]/15 text-[#007AFF]'
                   }`}>
                     {app.match_score}%
                   </span>
                 </div>
-                <h4 className="text-sm font-semibold text-slate-900 truncate mb-1.5">
+                <h4 className="text-[14px] font-semibold truncate mb-1">
                   {app.job_title}
                 </h4>
                 
-                <div className="flex items-center justify-between text-xs text-slate-500">
+                <div className="flex items-center justify-between text-[11px]">
                   <span className="flex items-center">
                     {app.recruiter_email ? (
-                      <span className="text-indigo-600 flex items-center"><Mail className="w-3 h-3 mr-1" /> Email Outreach</span>
+                      <span className={`flex items-center ${isSelected ? 'text-white/90' : 'text-[#5856D6] dark:text-[#5E5CE6]'}`}>
+                        <Mail className="w-3 h-3 mr-1" strokeWidth={1.75} /> Email Outreach
+                      </span>
                     ) : (
-                      <span className="text-slate-600 flex items-center"><Globe className="w-3 h-3 mr-1" /> Web / ATS Apply</span>
+                      <span className={`flex items-center ${isSelected ? 'text-white/90' : 'text-[rgba(60,60,67,0.7)] dark:text-[rgba(235,235,245,0.7)]'}`}>
+                        <Globe className="w-3 h-3 mr-1" strokeWidth={1.75} /> Web Apply
+                      </span>
                     )}
                   </span>
                   {isSent && (
-                    <span className="text-emerald-600 font-medium flex items-center">
-                      <CheckCircle2 className="w-3 h-3 mr-1" /> Sent
+                    <span className={`font-medium flex items-center ${isSelected ? 'text-white' : 'text-[#34C759] dark:text-[#30D158]'}`}>
+                      <CheckCircle2 className="w-3 h-3 mr-1" strokeWidth={2} /> Sent
                     </span>
                   )}
                 </div>
@@ -157,55 +177,65 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({
 
       {/* Right Detail Pane */}
       {selectedApp && (
-        <div className="flex-1 flex flex-col h-full overflow-hidden bg-white">
+        <div className="flex-1 flex flex-col h-full overflow-hidden bg-white dark:bg-[#1C1C1E]">
           
           {/* Header */}
-          <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="p-5 border-b border-[rgba(60,60,67,0.12)] dark:border-[rgba(84,84,88,0.35)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <div className="flex items-center space-x-3 mb-1">
-                <h2 className="text-xl font-bold text-slate-900">{selectedApp.job_title}</h2>
-                <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                  selectedApp.match_score >= 80 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-sky-50 text-sky-700 border border-sky-200'
+              <div className="flex items-center space-x-2.5 mb-1">
+                <h2 className="text-[18px] font-bold text-black dark:text-white tracking-tight">
+                  {selectedApp.job_title}
+                </h2>
+                <span className={`px-2 py-0.5 rounded-[6px] text-[11px] font-bold ${
+                  selectedApp.match_score >= 80 
+                    ? 'bg-[#34C759]/15 text-[#34C759] dark:text-[#30D158]' 
+                    : 'bg-[#007AFF]/15 text-[#007AFF] dark:text-[#0A84FF]'
                 }`}>
                   {selectedApp.match_score}% Match
                 </span>
-                <span className="text-xs px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-medium">
+                <span className="text-[11px] px-2 py-0.5 rounded-[6px] bg-[rgba(120,120,128,0.12)] text-[rgba(60,60,67,0.8)] dark:text-[rgba(235,235,245,0.8)] font-medium">
                   {selectedApp.status}
                 </span>
               </div>
-              <div className="text-sm text-slate-500 flex items-center space-x-3">
-                <span className="font-medium text-slate-700">{selectedApp.company}</span>
+              <div className="text-[13px] text-[rgba(60,60,67,0.65)] dark:text-[rgba(235,235,245,0.65)] flex items-center space-x-3">
+                <span className="font-medium text-black dark:text-white">{selectedApp.company}</span>
                 {selectedApp.application_url && (
-                  <a href={selectedApp.application_url} target="_blank" rel="noreferrer" className="text-sky-600 hover:underline inline-flex items-center text-xs">
-                    View Job Posting <ExternalLink className="w-3 h-3 ml-1" />
+                  <a href={selectedApp.application_url} target="_blank" rel="noreferrer" className="text-[#007AFF] dark:text-[#0A84FF] hover:underline inline-flex items-center text-[12px]">
+                    View Job Posting <ExternalLink className="w-3 h-3 ml-1" strokeWidth={1.75} />
                   </a>
                 )}
               </div>
             </div>
 
-            {/* Tab Pills & Save Button */}
+            {/* Tab Segmented Control & Save Button */}
             <div className="flex flex-wrap items-center gap-2">
-              <div className="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-medium">
+              <div className="flex items-center bg-[rgba(120,120,128,0.12)] dark:bg-[rgba(120,120,128,0.24)] p-0.5 rounded-[8px] text-[12px] font-medium">
                 <button
                   onClick={() => setActiveTab('email')}
-                  className={`px-3 py-1.5 rounded-lg transition-all ${
-                    activeTab === 'email' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                  className={`px-3 py-1 rounded-[6px] transition-all duration-150 ${
+                    activeTab === 'email' 
+                      ? 'bg-white dark:bg-[#2C2C2E] text-black dark:text-white shadow-apple-1' 
+                      : 'text-[rgba(60,60,67,0.7)] dark:text-[rgba(235,235,245,0.7)] hover:text-black dark:hover:text-white'
                   }`}
                 >
                   Recruiter Email
                 </button>
                 <button
                   onClick={() => setActiveTab('coverLetter')}
-                  className={`px-3 py-1.5 rounded-lg transition-all ${
-                    activeTab === 'coverLetter' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                  className={`px-3 py-1 rounded-[6px] transition-all duration-150 ${
+                    activeTab === 'coverLetter' 
+                      ? 'bg-white dark:bg-[#2C2C2E] text-black dark:text-white shadow-apple-1' 
+                      : 'text-[rgba(60,60,67,0.7)] dark:text-[rgba(235,235,245,0.7)] hover:text-black dark:hover:text-white'
                   }`}
                 >
                   Cover Letter
                 </button>
                 <button
                   onClick={() => setActiveTab('analysis')}
-                  className={`px-3 py-1.5 rounded-lg transition-all ${
-                    activeTab === 'analysis' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                  className={`px-3 py-1 rounded-[6px] transition-all duration-150 ${
+                    activeTab === 'analysis' 
+                      ? 'bg-white dark:bg-[#2C2C2E] text-black dark:text-white shadow-apple-1' 
+                      : 'text-[rgba(60,60,67,0.7)] dark:text-[rgba(235,235,245,0.7)] hover:text-black dark:hover:text-white'
                   }`}
                 >
                   Fit Analysis
@@ -226,35 +256,35 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({
                     setTimeout(() => setActionSuccess(null), 3000);
                   }
                 }}
-                className="px-3 py-1.5 text-xs font-medium border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors text-slate-700"
+                className="btn-apple-secondary text-[12px] px-3 py-1.5 h-7 cursor-pointer"
               >
                 Save Draft
               </button>
             </div>
           </div>
 
-          {/* Alert feedback */}
+          {/* Feedback Alerts */}
           {actionSuccess && (
-            <div className="mx-6 mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center space-x-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <div className="mx-5 mt-3 p-3 rounded-[10px] bg-[#34C759]/10 border border-[#34C759]/20 text-[#34C759] dark:text-[#30D158] text-[12px] flex items-center space-x-2">
+              <CheckCircle2 className="w-4 h-4 shrink-0" strokeWidth={2} />
               <span>{actionSuccess}</span>
             </div>
           )}
           {actionError && (
-            <div className="mx-6 mt-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center space-x-2">
-              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+            <div className="mx-5 mt-3 p-3 rounded-[10px] bg-[#FF3B30]/10 border border-[#FF3B30]/20 text-[#FF3B30] dark:text-[#FF453A] text-[12px] flex items-center space-x-2">
+              <AlertCircle className="w-4 h-4 shrink-0" strokeWidth={2} />
               <span>{actionError}</span>
             </div>
           )}
 
           {/* Content Area */}
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto p-5">
             
             {/* TAB: Recruiter Email */}
             {activeTab === 'email' && (
               <div className="space-y-4 max-w-3xl">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                  <label className="block text-[12px] font-semibold text-[rgba(60,60,67,0.7)] dark:text-[rgba(235,235,245,0.7)] uppercase tracking-wider mb-1">
                     To: Recruiter / Hiring Email
                   </label>
                   <input
@@ -262,53 +292,55 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({
                     value={recipientEmail}
                     onChange={(e) => setRecipientEmail(e.target.value)}
                     placeholder="e.g. careers@company.com or talent@company.com"
-                    className="w-full text-sm px-3.5 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                    className="input-apple w-full px-3.5 py-2 text-[14px]"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                  <label className="block text-[12px] font-semibold text-[rgba(60,60,67,0.7)] dark:text-[rgba(235,235,245,0.7)] uppercase tracking-wider mb-1">
                     Subject Line
                   </label>
                   <input
                     type="text"
                     value={emailSubject}
                     onChange={(e) => setEmailSubject(e.target.value)}
-                    className="w-full text-sm px-3.5 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none font-medium text-slate-800"
+                    className="input-apple w-full px-3.5 py-2 text-[14px] font-medium"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+                  <label className="block text-[12px] font-semibold text-[rgba(60,60,67,0.7)] dark:text-[rgba(235,235,245,0.7)] uppercase tracking-wider mb-1">
                     Email Body
                   </label>
                   <textarea
                     rows={12}
                     value={emailBody}
                     onChange={(e) => setEmailBody(e.target.value)}
-                    className="w-full text-sm px-3.5 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none font-sans leading-relaxed text-slate-700"
+                    className="input-apple w-full px-3.5 py-2.5 text-[14px] font-sans leading-relaxed resize-none"
                   />
                 </div>
 
                 {/* Attachments Note */}
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs text-slate-600">
-                  <div className="flex items-center space-x-2">
-                    <Paperclip className="w-4 h-4 text-slate-400" />
+                <div className="p-3 bg-[rgba(120,120,128,0.06)] dark:bg-[rgba(120,120,128,0.12)] rounded-[10px] flex items-center justify-between text-[12px]">
+                  <div className="flex items-center space-x-2 text-[rgba(60,60,67,0.85)] dark:text-[rgba(235,235,245,0.85)]">
+                    <Paperclip className="w-4 h-4 text-[#007AFF]" strokeWidth={1.75} />
                     <span><strong>Attached:</strong> Kunal_Gursal_Resume.pdf + Tailored_Cover_Letter.pdf</span>
                   </div>
-                  <span className="text-emerald-700 font-medium">Ready for Delivery</span>
+                  <span className="text-[#34C759] dark:text-[#30D158] font-medium">Ready</span>
                 </div>
 
                 {/* Send Button */}
                 <div className="pt-2 flex items-center justify-between">
-                  <span className="text-xs text-slate-400">SMTP direct dispatch via configured gateway</span>
+                  <span className="text-[12px] text-[rgba(60,60,67,0.5)] dark:text-[rgba(235,235,245,0.5)]">
+                    Direct TLS/SSL SMTP dispatch
+                  </span>
                   <button
                     onClick={handleSendEmail}
                     disabled={isSending || !recipientEmail}
-                    className="inline-flex items-center space-x-2 px-6 py-2.5 bg-sky-600 text-white text-sm font-semibold rounded-xl hover:bg-sky-700 active:scale-95 transition-all shadow-sm disabled:opacity-60"
+                    className="btn-apple-primary px-5 py-2 text-[13px] gap-1.5 cursor-pointer disabled:opacity-50"
                   >
-                    <Send className="w-4 h-4" />
-                    <span>{isSending ? 'Sending Application...' : 'Send Application Email (1-Click)'}</span>
+                    <Send className="w-3.5 h-3.5" strokeWidth={2} />
+                    <span>{isSending ? 'Sending...' : 'Send Application Email (1-Click)'}</span>
                   </button>
                 </div>
               </div>
@@ -318,16 +350,16 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({
             {activeTab === 'coverLetter' && (
               <div className="space-y-4 max-w-3xl">
                 <div className="flex items-center justify-between">
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                  <label className="block text-[12px] font-semibold text-[rgba(60,60,67,0.7)] dark:text-[rgba(235,235,245,0.7)] uppercase tracking-wider">
                     Tailored Formal Cover Letter
                   </label>
                   <a
                     href={`/api/applications/${selectedApp.id}/pdf`}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-xs text-sky-600 font-medium hover:underline inline-flex items-center"
+                    className="text-[12px] text-[#007AFF] dark:text-[#0A84FF] font-medium hover:underline inline-flex items-center"
                   >
-                    <Download className="w-3.5 h-3.5 mr-1" /> Download PDF
+                    <Download className="w-3.5 h-3.5 mr-1" strokeWidth={1.75} /> Download PDF
                   </a>
                 </div>
 
@@ -335,22 +367,26 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({
                   rows={16}
                   value={coverLetterText}
                   onChange={(e) => setCoverLetterText(e.target.value)}
-                  className="w-full text-sm p-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none font-sans leading-relaxed text-slate-700"
+                  className="input-apple w-full p-4 text-[14px] font-sans leading-relaxed resize-none"
                 />
 
                 {/* Autofill Browser Action */}
-                <div className="p-4 bg-indigo-50/50 rounded-xl border border-indigo-100 flex items-center justify-between">
+                <div className="p-4 bg-[#5856D6]/8 dark:bg-[#5856D6]/15 rounded-[12px] border border-[#5856D6]/20 flex items-center justify-between">
                   <div>
-                    <h5 className="text-xs font-semibold text-indigo-900">Apply on Company Portal (Playwright ATS Autofill)</h5>
-                    <p className="text-xs text-indigo-700 mt-0.5">Launches visible browser, pre-fills your profile and attaches resume.</p>
+                    <h5 className="text-[13px] font-semibold text-[#5856D6] dark:text-[#5E5CE6]">
+                      Apply on Company Portal (Playwright ATS Autofill)
+                    </h5>
+                    <p className="text-[12px] text-[rgba(60,60,67,0.7)] dark:text-[rgba(235,235,245,0.7)] mt-0.5">
+                      Launches visible browser, pre-fills your profile and attaches resume.
+                    </p>
                   </div>
                   <button
                     onClick={handleAutofill}
                     disabled={isAutofilling || !selectedApp.application_url}
-                    className="inline-flex items-center space-x-1.5 px-4 py-2 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-700 active:scale-95 transition-all disabled:opacity-60"
+                    className="btn-apple-secondary text-[#5856D6] dark:text-[#5E5CE6] px-4 py-2 text-[12px] font-semibold cursor-pointer disabled:opacity-50"
                   >
-                    <Globe className="w-3.5 h-3.5" />
-                    <span>{isAutofilling ? 'Autofilling...' : 'Auto-Fill in Browser'}</span>
+                    <Globe className="w-3.5 h-3.5 mr-1.5" strokeWidth={1.75} />
+                    <span>{isAutofilling ? 'Opening...' : 'Launch ATS Autofill'}</span>
                   </button>
                 </div>
               </div>
@@ -358,40 +394,47 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({
 
             {/* TAB: Fit Analysis */}
             {activeTab === 'analysis' && (
-              <div className="space-y-6 max-w-3xl">
-                <div className="p-5 bg-slate-50 rounded-xl border border-slate-200">
-                  <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Resume Fit Score</h4>
-                  <div className="flex items-baseline space-x-3">
-                    <span className="text-4xl font-extrabold text-slate-900">{selectedApp.match_score}%</span>
-                    <span className="text-sm font-medium text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full">
-                      Strong Fit for AI Full Stack
-                    </span>
-                  </div>
+              <div className="space-y-4 max-w-2xl">
+                <div className="p-4 rounded-[12px] bg-[rgba(120,120,128,0.06)] dark:bg-[rgba(120,120,128,0.12)]">
+                  <h4 className="text-[13px] font-semibold text-black dark:text-white mb-2">
+                    Candidate Selling Angle
+                  </h4>
+                  <p className="text-[13px] text-[rgba(60,60,67,0.8)] dark:text-[rgba(235,235,245,0.8)] leading-relaxed">
+                    {selectedApp.notes || "Tailored positioning highlighting GenAI development, React micro-frontends, and high-performance FastAPI backends."}
+                  </p>
                 </div>
 
-                <div>
-                  <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Matched Competencies</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedApp.matched_skills.map((s) => (
-                      <span key={s} className="px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-xs font-medium">
-                        ✓ {s}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {selectedApp.missing_skills.length > 0 && (
-                  <div>
-                    <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Potential Skill Gaps in Posting</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedApp.missing_skills.map((s) => (
-                        <span key={s} className="px-3 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-lg text-xs font-medium">
-                          ! {s}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div className="p-4 rounded-[12px] bg-[#34C759]/8 dark:bg-[#34C759]/15 border border-[#34C759]/20">
+                    <h5 className="text-[12px] font-semibold text-[#34C759] dark:text-[#30D158] uppercase tracking-wider mb-2">
+                      Matched Skills
+                    </h5>
+                    <div className="flex flex-wrap gap-1.5">
+                      {selectedApp.matched_skills.map((s, idx) => (
+                        <span key={idx} className="text-[12px] px-2 py-0.5 rounded-[6px] bg-white dark:bg-[#1C1C1E] text-black dark:text-white font-medium shadow-apple-1">
+                          {s}
                         </span>
                       ))}
                     </div>
                   </div>
-                )}
+
+                  <div className="p-4 rounded-[12px] bg-[#FF9500]/8 dark:bg-[#FF9500]/15 border border-[#FF9500]/20">
+                    <h5 className="text-[12px] font-semibold text-[#FF9500] dark:text-[#FF9F0A] uppercase tracking-wider mb-2">
+                      Missing / Target Gaps
+                    </h5>
+                    <div className="flex flex-wrap gap-1.5">
+                      {selectedApp.missing_skills.length > 0 ? (
+                        selectedApp.missing_skills.map((s, idx) => (
+                          <span key={idx} className="text-[12px] px-2 py-0.5 rounded-[6px] bg-white dark:bg-[#1C1C1E] text-black dark:text-white font-medium shadow-apple-1">
+                            {s}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-[12px] text-[rgba(60,60,67,0.6)]">No critical gaps identified</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
