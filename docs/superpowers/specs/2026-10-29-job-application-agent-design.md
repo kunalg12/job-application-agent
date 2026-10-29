@@ -27,14 +27,21 @@ The **Job Application Agent & Interactive Dashboard** is an intelligent, autonom
 - **Automated Multi-Source Discovery:** Ingest jobs from RemoteOK, Arbeitnow, Jobicy APIs, plus manual job URL/text import (Greenhouse, Lever, LinkedIn, Indeed job links).
 - **Intelligent Resume Parsing & Match Scoring:** Parse user resume (PDF/DOCX/text), extract core skills, experience, and projects; compute match scores (0-100%) against each job description using LLM reasoning.
 - **Dynamic Tailoring:** Generate tailored, persuasive cover letters and cold outreach emails referencing specific user projects and job requirements.
-- **Dual Application Modes:**
-  - **Email Outreach:** Direct SMTP delivery to recruiters/HR with the candidate's actual resume PDF attached and generated cover letter.
-  - **Web Application Automation:** Playwright-based ATS form autofiller and submitter for Greenhouse, Lever, and standard career portals.
+- **Smart Recruiter Email Discovery & Routing:**
+  - Extracts recruiter/HR emails from job descriptions.
+  - Domain heuristic: Suggests company hiring inboxes (e.g. `careers@domain.com`, `talent@domain.com`, `jobs@domain.com`) with easy edit in the dashboard.
+  - Seamless dual-channel routing: Jobs with email route to email outreach queue; jobs with application URLs route to the ATS auto-fill queue.
+- **Two-Tier Autonomous Guardrails:**
+  - **Tier 1 (Default / Safe Mode - Option A):** Staged 1-click approval. The agent discovers, scores, generates custom cover letters/emails, and stages them. The user reviews and clicks "Send" or "Apply".
+  - **Tier 2 (Full Autonomous Auto-Pilot - Option B):** Configurable toggle in settings with a match threshold (e.g., 85%+). The agent dispatches emails and submits supported forms automatically, with full audit logging.
+- **Dual Application Execution:**
+  - **Email Outreach:** Direct SMTP delivery to recruiters/HR with the candidate's actual resume PDF attached and generated cover letter PDF.
+  - **Web Application Automation:** Playwright-based ATS form autofiller and submitter for Greenhouse, Lever, and standard career portals (supporting headed browser preview for 5-second human review).
 - **Interactive Modern Dashboard:**
   - Pipeline Kanban/List view: Discovered → Matched → Review Queue → Applied/Sent → Interviewing → Rejected.
-  - One-click actions: "Send Recruiter Email", "Auto-Fill Application", "Regenerate Cover Letter", "Archive".
+  - One-click actions: "Send Recruiter Email", "Auto-Fill in Browser", "Regenerate Cover Letter", "Archive".
   - Live configuration: Target job titles, min salary, remote filters, SMTP credentials, LLM API keys, automation mode toggle.
-- **Safety & Deliverability:** Strict rate limiting, duplicate application prevention, preview before send in supervised mode, and transparent audit logging.
+- **Safety & Deliverability:** Strict rate limiting (default max 20/day), duplicate application prevention, preview before send, and transparent audit logging.
 
 ### 2.2 Non-Goals
 - Attempting to bypass strict anti-bot captchas (e.g. Cloudflare Turnstile on heavily protected sites like Workday) in an aggressive way. When a site blocks automation or requires multi-factor auth, the agent gracefully degrades to "Ready for Manual Review" with all form answers pre-copied to clipboard.
