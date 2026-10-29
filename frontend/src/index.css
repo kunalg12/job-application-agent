@@ -14,6 +14,12 @@
     -moz-osx-font-smoothing: grayscale;
     background-color: #F2F2F7;
     color: #000000;
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+
+  html.dark body {
+    background-color: #000000;
+    color: #FFFFFF;
   }
 
   @media (prefers-color-scheme: dark) {
@@ -109,10 +115,8 @@
   -webkit-backdrop-filter: blur(20px) saturate(180%);
 }
 
-@media (prefers-color-scheme: dark) {
-  .material-regular {
-    background: rgba(28, 28, 30, 0.82);
-  }
+html.dark .material-regular {
+  background: rgba(28, 28, 30, 0.82);
 }
 
 .material-thin {
@@ -121,10 +125,8 @@
   -webkit-backdrop-filter: blur(12px) saturate(160%);
 }
 
-@media (prefers-color-scheme: dark) {
-  .material-thin {
-    background: rgba(28, 28, 30, 0.65);
-  }
+html.dark .material-thin {
+  background: rgba(28, 28, 30, 0.65);
 }
 
 .material-thick {
@@ -133,10 +135,8 @@
   -webkit-backdrop-filter: blur(28px) saturate(200%);
 }
 
-@media (prefers-color-scheme: dark) {
-  .material-thick {
-    background: rgba(36, 36, 38, 0.92);
-  }
+html.dark .material-thick {
+  background: rgba(36, 36, 38, 0.92);
 }
 
 .material-ultrathin {
@@ -145,10 +145,8 @@
   -webkit-backdrop-filter: blur(8px) saturate(140%);
 }
 
-@media (prefers-color-scheme: dark) {
-  .material-ultrathin {
-    background: rgba(22, 22, 22, 0.55);
-  }
+html.dark .material-ultrathin {
+  background: rgba(22, 22, 22, 0.55);
 }
 
 /* Apple Buttons */
@@ -190,14 +188,12 @@
   transform: scale(0.97);
 }
 
-@media (prefers-color-scheme: dark) {
-  .btn-apple-secondary {
-    background: rgba(10, 132, 255, 0.15);
-    color: #0A84FF;
-  }
-  .btn-apple-secondary:hover {
-    background: rgba(10, 132, 255, 0.22);
-  }
+html.dark .btn-apple-secondary {
+  background: rgba(10, 132, 255, 0.15);
+  color: #0A84FF;
+}
+html.dark .btn-apple-secondary:hover {
+  background: rgba(10, 132, 255, 0.22);
 }
 
 .btn-apple-ghost {
@@ -217,10 +213,8 @@
   opacity: 0.7;
 }
 
-@media (prefers-color-scheme: dark) {
-  .btn-apple-ghost {
-    color: #0A84FF;
-  }
+html.dark .btn-apple-ghost {
+  color: #0A84FF;
 }
 
 /* Apple Native Input */
@@ -238,16 +232,14 @@
   box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.20);
 }
 
-@media (prefers-color-scheme: dark) {
-  .input-apple {
-    background: rgba(120, 120, 128, 0.20);
-    color: #FFFFFF;
-  }
-  .input-apple:focus {
-    background: #1C1C1E;
-    border-color: #0A84FF;
-    box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.28);
-  }
+html.dark .input-apple {
+  background: rgba(120, 120, 128, 0.20);
+  color: #FFFFFF;
+}
+html.dark .input-apple:focus {
+  background: #1C1C1E;
+  border-color: #0A84FF;
+  box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.28);
 }
 
 /* Native Apple Switch Toggle (51x31px) */

@@ -9,9 +9,12 @@ import {
   User, 
   Settings as SettingsIcon, 
   Sparkles,
-  Zap
+  Zap,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { DashboardMetrics } from '../types';
+import { useTheme } from '../context/ThemeContext';
 
 interface SidebarProps {
   activeTab: 'feed' | 'queue' | 'tracker';
@@ -34,6 +37,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isOpen,
   onSelectFilter,
 }) => {
+  const { theme, toggleTheme } = useTheme();
+
   if (!isOpen) return null;
 
   return (
@@ -165,6 +170,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <SettingsIcon className="w-3.5 h-3.5 text-[rgba(60,60,67,0.7)] dark:text-[rgba(235,235,245,0.7)]" strokeWidth={1.75} />
               <span>Outreach Settings</span>
             </button>
+
+            {/* Appearance Toggle Item */}
+            <div className="pt-1">
+              <button
+                onClick={toggleTheme}
+                className="w-full h-8 px-2.5 rounded-[8px] text-[13px] font-medium flex items-center justify-between text-black dark:text-white hover:bg-[rgba(120,120,128,0.10)] transition-all cursor-pointer"
+                title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+              >
+                <div className="flex items-center space-x-2">
+                  {theme === 'dark' ? (
+                    <Sun className="w-3.5 h-3.5 text-[#FF9500] dark:text-[#FFD60A]" strokeWidth={1.75} />
+                  ) : (
+                    <Moon className="w-3.5 h-3.5 text-[#5856D6]" strokeWidth={1.75} />
+                  )}
+                  <span>Appearance</span>
+                </div>
+                <span className="text-[11px] font-semibold text-[rgba(60,60,67,0.6)] dark:text-[rgba(235,235,245,0.6)]">
+                  {theme === 'dark' ? 'Dark' : 'Light'}
+                </span>
+              </button>
+            </div>
           </nav>
         </div>
 

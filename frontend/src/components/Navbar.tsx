@@ -1,5 +1,6 @@
 import React from 'react';
-import { Bot, RefreshCw, Zap, Shield, User, Settings as SettingsIcon, PanelLeft, Search } from 'lucide-react';
+import { Bot, RefreshCw, Zap, Shield, User, Settings as SettingsIcon, PanelLeft, Sun, Moon } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
 interface NavbarProps {
   activeTab: 'feed' | 'queue' | 'tracker';
@@ -24,6 +25,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   sidebarOpen,
   onToggleSidebar,
 }) => {
+  const { theme, toggleTheme } = useTheme();
   return (
     <header className="sticky top-0 z-40 material-regular border-b border-[rgba(60,60,67,0.12)] dark:border-[rgba(84,84,88,0.35)] transition-colors select-none">
       <div className="px-4 sm:px-6 h-[52px] flex items-center justify-between">
@@ -127,6 +129,20 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isScanning ? 'animate-spin' : ''}`} strokeWidth={1.75} />
             <span className="hidden sm:inline">{isScanning ? 'Scanning...' : 'Scan Jobs'}</span>
+          </button>
+
+          {/* Theme Toggle Button (Light/Dark Mode) */}
+          <button
+            onClick={toggleTheme}
+            className="w-7.5 h-7.5 rounded-full bg-[rgba(120,120,128,0.12)] hover:bg-[rgba(120,120,128,0.2)] text-black dark:text-white flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+            title={theme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
+            aria-label="Toggle theme"
+          >
+            {theme === 'dark' ? (
+              <Sun className="w-3.5 h-3.5 text-[#FF9500] dark:text-[#FFD60A]" strokeWidth={1.75} />
+            ) : (
+              <Moon className="w-3.5 h-3.5 text-[#5856D6]" strokeWidth={1.75} />
+            )}
           </button>
 
           {/* Profile Modal Trigger */}
