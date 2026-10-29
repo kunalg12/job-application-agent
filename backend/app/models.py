@@ -1,3 +1,5 @@
+import uuid
+from enum import Enum
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timezone
 from pydantic import BaseModel, Field
@@ -90,3 +92,64 @@ class AuditLog(BaseModel):
     event_type: str # EMAIL_SENT, FORM_SUBMITTED, JOB_DISCOVERED, AUTO_APPLY_TRIGGERED
     details: str
     status: str # SUCCESS, FAILURE
+
+# --- SaaS Multi-Tenant & Interview Notetaker Models ---
+
+class RoundType(str, Enum):
+    RECRUITER_SCREEN = "RECRUITER_SCREEN"
+    TECH_CODING = "TECH_CODING"
+    SYSTEM_DESIGN = "SYSTEM_DESIGN"
+    BEHAVIORAL = "BEHAVIORAL"
+    HIRING_MANAGER = "HIRING_MANAGER"
+    EXECUTIVE = "EXECUTIVE"
+    OFFER = "OFFER"
+
+class RoundSource(str, Enum):
+    VOICE_NOTE = "VOICE_NOTE"
+    EMAIL_FORWARD = "EMAIL_FORWARD"
+    SCRATCHPAD = "SCRATCHPAD"
+    MANUAL = "MANUAL"
+
+class User(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    email: str
+    name: str
+    inbound_email_token: str = Field(default_factory=lambda: f"user-{uuid.uuid4().hex[:8]}")
+    subscription_tier: str = "FREE" # FREE, PRO, ENTERPRISE
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+class InterviewRound(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    company_id: str
+    user_id: str
+    round_number: int = 1
+    round_title: str
+    round_type: RoundType = RoundType.RECRUITER_SCREEN
+    scheduled_at: Optional[str] = None
+    duration_minutes: int = 45
+    interviewer_info: List[Dict[str, Any]] = Field(default_factory=list)
+    raw_input_source: RoundSource = RoundSource.SCRATCHPAD
+    raw_input_text: Optional[str] = None
+    audio_url: Optional[str] = None
+    summary: Optional[str] = None
+    candidate_feeling: Optional[str] = None # STRONG_YES, MODERATE, NEUTRAL, CONCERNED
+    feedback_received: Optional[str] = None
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+class InterviewQuestion(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    round_id: str
+    user_id: str
+    question_text: str
+    question_category: str = "GENERAL" # CODING_DSA, SYSTEM_DESIGN, EXPERIENCE, CULTURE_BEHAVIORAL
+    candidate_answer_notes: Optional[str] = None
+    areas_to_improve: Optional[str] = None
+    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+class RoundPrepBriefing(BaseModel):
+    company_name: str
+    round_title: str
+    overview: str
+    key_topics_to_review: List[str] = Field(default_factory=list)
+    predicted_questions: List[str] = Field(default_factory=list)
+    tips_based_on_history: List[str] = Field(default_factory=list)

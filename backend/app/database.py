@@ -4,7 +4,10 @@ import json
 import os
 from typing import Optional, List, Dict, Any
 from pathlib import Path
-from backend.app.models import Job, Application, UserProfile, AppSettings, AuditLog
+from backend.app.models import (
+    Job, Application, UserProfile, AppSettings, AuditLog,
+    User, InterviewRound, InterviewQuestion
+)
 
 class Database:
     def __init__(self, db_path: str):
@@ -89,6 +92,58 @@ class Database:
                     status TEXT
                 )
             """)
+
+            # --- SaaS Multi-Tenant Tables ---
+            await db.execute("""
+                CREATE TABLE IF NOT EXISTS users (
+                    id TEXT PRIMARY KEY,
+                    email TEXT UNIQUE NOT NULL,
+                    name TEXT NOT NULL,
+                    inbound_email_token TEXT UNIQUE NOT NULL,
+                    subscription_tier TEXT DEFAULT 'FREE',
+                    created_at TEXT NOT NULL
+                )
+            """)
+
+            await db.execute("""
+                CREATE TABLE IF NOT EXISTS interview_rounds (
+                    id TEXT PRIMARY KEY,
+                    company_id TEXT NOT NULL,
+                    user_id TEXT NOT NULL,
+                    round_number INTEGER DEFAULT 1,
+                    round_title TEXT NOT NULL,
+                    round_type TEXT NOT NULL,
+                    scheduled_at TEXT,
+                    duration_minutes INTEGER DEFAULT 45,
+                    interviewer_info TEXT,
+                    raw_input_source TEXT NOT NULL,
+                    raw_input_text TEXT,
+                    audio_url TEXT,
+                    summary TEXT,
+                    candidate_feeling TEXT,
+                    feedback_received TEXT,
+                    created_at TEXT NOT NULL,
+                    FOREIGN KEY (user_id) REFERENCES users(id)
+                )
+            """)
+
+            await db.execute("""
+                CREATE TABLE IF NOT EXISTS interview_questions (
+                    id TEXT PRIMARY KEY,
+                    round_id TEXT NOT NULL,
+                    user_id TEXT NOT NULL,
+                    question_text TEXT NOT NULL,
+                    question_category TEXT DEFAULT 'GENERAL',
+                    candidate_answer_notes TEXT,
+                    areas_to_improve TEXT,
+                    created_at TEXT NOT NULL,
+                    FOREIGN KEY (round_id) REFERENCES interview_rounds(id),
+                    FOREIGN KEY (user_id) REFERENCES users(id)
+                )
+            """)
+
+            await db.execute("CREATE INDEX IF NOT EXISTS idx_rounds_user_company ON interview_rounds(user_id, company_id);")
+            await db.execute("CREATE INDEX IF NOT EXISTS idx_questions_round ON interview_questions(user_id, round_id);")
             await db.commit()
 
     async def init_db(self) -> None:
@@ -250,3 +305,125 @@ class Database:
             """) as cursor:
                 row = await cursor.fetchone()
                 return row["count"] if row else 0
+
+    # --- SaaS Multi-Tenant & Interview CRM Methods ---
+
+    async def create_user(self, user: User) -> None:
+        async with self.get_connection() as db:
+            await db.execute("""
+                INSERT INTO users (id, email, name, inbound_email_token, subscription_tier, created_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    name=excluded.name,
+                    subscription_tier=excluded.subscription_tier
+            """, (user.id, user.email, user.name, user.inbound_email_token, user.subscription_tier, user.created_at))
+            await db.commit()
+
+    async def get_user_by_email(self, email: str) -> Optional[User]:
+        async with self.get_connection() as db:
+            async with db.execute("SELECT * FROM users WHERE email = ?", (email,)) as cursor:
+                row = await cursor.fetchone()
+                return User(**dict(row)) if row else None
+
+    async def get_user_by_inbound_token(self, token: str) -> Optional[User]:
+        async with self.get_connection() as db:
+            async with db.execute("SELECT * FROM users WHERE inbound_email_token = ?", (token,)) as cursor:
+                row = await cursor.fetchone()
+                return User(**dict(row)) if row else None
+
+    async def save_interview_round(self, round_obj: InterviewRound) -> None:
+        async with self.get_connection() as db:
+            await db.execute("""
+                INSERT INTO interview_rounds (
+                    id, company_id, user_id, round_number, round_title, round_type,
+                    scheduled_at, duration_minutes, interviewer_info, raw_input_source,
+                    raw_input_text, audio_url, summary, candidate_feeling, feedback_received, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    round_title=excluded.round_title,
+                    round_type=excluded.round_type,
+                    scheduled_at=excluded.scheduled_at,
+                    duration_minutes=excluded.duration_minutes,
+                    interviewer_info=excluded.interviewer_info,
+                    raw_input_source=excluded.raw_input_source,
+                    raw_input_text=excluded.raw_input_text,
+                    audio_url=excluded.audio_url,
+                    summary=excluded.summary,
+                    candidate_feeling=excluded.candidate_feeling,
+                    feedback_received=excluded.feedback_received
+            """, (
+                round_obj.id, round_obj.company_id, round_obj.user_id, round_obj.round_number,
+                round_obj.round_title, round_obj.round_type.value if hasattr(round_obj.round_type, 'value') else round_obj.round_type,
+                round_obj.scheduled_at, round_obj.duration_minutes, json.dumps(round_obj.interviewer_info),
+                round_obj.raw_input_source.value if hasattr(round_obj.raw_input_source, 'value') else round_obj.raw_input_source,
+                round_obj.raw_input_text, round_obj.audio_url, round_obj.summary, round_obj.candidate_feeling,
+                round_obj.feedback_received, round_obj.created_at
+            ))
+            await db.commit()
+
+    async def list_interview_rounds_for_user(self, user_id: str) -> List[InterviewRound]:
+        async with self.get_connection() as db:
+            async with db.execute(
+                "SELECT * FROM interview_rounds WHERE user_id = ? ORDER BY round_number ASC, created_at ASC",
+                (user_id,)
+            ) as cursor:
+                rows = await cursor.fetchall()
+                rounds = []
+                for row in rows:
+                    data = dict(row)
+                    data["interviewer_info"] = json.loads(data["interviewer_info"]) if data.get("interviewer_info") else []
+                    rounds.append(InterviewRound(**data))
+                return rounds
+
+    async def list_interview_rounds_for_company(self, user_id: str, company_id: str) -> List[InterviewRound]:
+        async with self.get_connection() as db:
+            async with db.execute(
+                "SELECT * FROM interview_rounds WHERE user_id = ? AND company_id = ? ORDER BY round_number ASC, created_at ASC",
+                (user_id, company_id)
+            ) as cursor:
+                rows = await cursor.fetchall()
+                rounds = []
+                for row in rows:
+                    data = dict(row)
+                    data["interviewer_info"] = json.loads(data["interviewer_info"]) if data.get("interviewer_info") else []
+                    rounds.append(InterviewRound(**data))
+                return rounds
+
+    async def get_interview_round_by_id(self, user_id: str, round_id: str) -> Optional[InterviewRound]:
+        async with self.get_connection() as db:
+            async with db.execute(
+                "SELECT * FROM interview_rounds WHERE user_id = ? AND id = ?",
+                (user_id, round_id)
+            ) as cursor:
+                row = await cursor.fetchone()
+                if not row:
+                    return None
+                data = dict(row)
+                data["interviewer_info"] = json.loads(data["interviewer_info"]) if data.get("interviewer_info") else []
+                return InterviewRound(**data)
+
+    async def save_interview_question(self, question: InterviewQuestion) -> None:
+        async with self.get_connection() as db:
+            await db.execute("""
+                INSERT INTO interview_questions (
+                    id, round_id, user_id, question_text, question_category, candidate_answer_notes, areas_to_improve, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    question_text=excluded.question_text,
+                    question_category=excluded.question_category,
+                    candidate_answer_notes=excluded.candidate_answer_notes,
+                    areas_to_improve=excluded.areas_to_improve
+            """, (
+                question.id, question.round_id, question.user_id, question.question_text,
+                question.question_category, question.candidate_answer_notes, question.areas_to_improve, question.created_at
+            ))
+            await db.commit()
+
+    async def list_questions_for_round(self, user_id: str, round_id: str) -> List[InterviewQuestion]:
+        async with self.get_connection() as db:
+            async with db.execute(
+                "SELECT * FROM interview_questions WHERE user_id = ? AND round_id = ? ORDER BY created_at ASC",
+                (user_id, round_id)
+            ) as cursor:
+                rows = await cursor.fetchall()
+                return [InterviewQuestion(**dict(row)) for row in rows]
