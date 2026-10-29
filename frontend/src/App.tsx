@@ -3,6 +3,9 @@ import { Navbar } from './components/Navbar';
 import { MetricsBar } from './components/MetricsBar';
 import { JobFeed } from './components/JobFeed';
 import { ReviewQueue } from './components/ReviewQueue';
+import { ApplicationsTracker } from './components/ApplicationsTracker';
+import { SettingsModal } from './components/SettingsModal';
+import { ProfileModal } from './components/ProfileModal';
 import { api } from './services/api';
 import { Job, Application, UserProfile, AppSettings, DashboardMetrics } from './types';
 
@@ -11,6 +14,7 @@ export const App: React.FC = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [settings, setSettings] = useState<AppSettings | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [applications, setApplications] = useState<Application[]>([]);
   const [isScanning, setIsScanning] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
@@ -18,15 +22,17 @@ export const App: React.FC = () => {
 
   const loadData = async () => {
     try {
-      const [j, m, s, a] = await Promise.all([
+      const [j, m, s, p, a] = await Promise.all([
         api.getJobs(),
         api.getMetrics(),
         api.getSettings(),
+        api.getProfile(),
         api.getApplications(),
       ]);
       setJobs(j);
       setMetrics(m);
       setSettings(s);
+      setProfile(p);
       setApplications(a);
     } catch (err) {
       console.error('Failed to load initial data:', err);
@@ -82,6 +88,24 @@ export const App: React.FC = () => {
     await loadData();
   };
 
+  const handleSaveSettings = async (newSettings: AppSettings) => {
+    const updated = await api.updateSettings(newSettings);
+    setSettings(updated);
+    await loadData();
+  };
+
+  const handleSaveProfile = async (newProfile: UserProfile) => {
+    const updated = await api.updateProfile(newProfile);
+    setProfile(updated);
+    await loadData();
+  };
+
+  const handleUploadResume = async (file: File) => {
+    const updated = await api.uploadResume(file);
+    setProfile(updated);
+    await loadData();
+  };
+
   const stagedJobIds = new Set(applications.map((a) => a.job_id));
   const queuedApps = applications.filter(a => a.status === 'STAGED' || a.status === 'ACTION_REQUIRED');
 
@@ -119,13 +143,31 @@ export const App: React.FC = () => {
         )}
 
         {activeTab === 'tracker' && (
-          <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xs">
-            <h2 className="text-lg font-semibold text-slate-900 mb-1">Applications Tracker</h2>
-            <p className="text-sm text-slate-500 mb-4">Full audit history of sent emails and submitted applications.</p>
-            <div className="text-center py-12 text-slate-400">Loading applications tracker...</div>
-          </div>
+          <ApplicationsTracker
+            applications={applications}
+            onUpdateStatus={async (appId, status) => {
+              await handleUpdateApplication(appId, { status: status as any });
+            }}
+          />
         )}
       </main>
+
+      {/* Settings Modal */}
+      <SettingsModal
+        isOpen={settingsModalOpen}
+        onClose={() => setSettingsModalOpen(false)}
+        settings={settings}
+        onSave={handleSaveSettings}
+      />
+
+      {/* Profile Modal */}
+      <ProfileModal
+        isOpen={profileModalOpen}
+        onClose={() => setProfileModalOpen(false)}
+        profile={profile}
+        onSave={handleSaveProfile}
+        onUploadResume={handleUploadResume}
+      />
     </div>
   );
 };
