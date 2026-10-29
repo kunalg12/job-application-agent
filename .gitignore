@@ -6,6 +6,7 @@ node_modules/
 dist/
 .DS_Store
 backend/data/*.db
+data/
 *.log
 .pytest_cache/
 .superpowers/

@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.app.config import settings
 from backend.app.database import Database
 from backend.app.services.resume_service import extract_text_from_pdf, parse_resume_profile
-from backend.app.routers import jobs, applications, profile, settings as settings_router
+from backend.app.routers import jobs, applications, profile, settings as settings_router, ingest
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -43,6 +43,7 @@ app.include_router(jobs.router)
 app.include_router(applications.router)
 app.include_router(profile.router)
 app.include_router(settings_router.router)
+app.include_router(ingest.router)
 
 @app.get("/api/health")
 async def health_check():
