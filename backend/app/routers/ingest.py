@@ -12,7 +12,9 @@ from backend.app.services.interview_parser_service import parse_unstructured_int
 from backend.app.services.transcription_service import transcribe_audio_file, ALLOWED_AUDIO_EXTENSIONS, MAX_AUDIO_BYTES
 
 router = APIRouter(prefix="/api/ingest", tags=["Ingest"])
-db = Database(settings.db_path)
+
+def get_db() -> Database:
+    return Database(settings.db_path)
 
 class TextIngestRequest(BaseModel):
     raw_text: str
@@ -22,6 +24,7 @@ class TextIngestRequest(BaseModel):
 
 @router.post("/text")
 async def ingest_scratchpad_text(request: TextIngestRequest):
+    db = get_db()
     if not request.raw_text or not request.raw_text.strip():
         raise HTTPException(status_code=400, detail="Empty text payload")
 
@@ -69,6 +72,7 @@ async def ingest_voice_recording(
     company_name: Optional[str] = Form(None),
     round_id: Optional[str] = Form(None)
 ):
+    db = get_db()
     ext = os.path.splitext(file.filename)[1].lower() if file.filename else ""
     if ext not in ALLOWED_AUDIO_EXTENSIONS:
         raise HTTPException(

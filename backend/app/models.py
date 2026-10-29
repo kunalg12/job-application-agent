@@ -127,6 +127,7 @@ class InterviewRound(BaseModel):
     round_type: RoundType = RoundType.RECRUITER_SCREEN
     scheduled_at: Optional[str] = None
     duration_minutes: int = 45
+    meeting_link: Optional[str] = None
     interviewer_info: List[Any] = Field(default_factory=list)
     raw_input_source: RoundSource = RoundSource.SCRATCHPAD
     raw_input_text: Optional[str] = None

@@ -115,6 +115,7 @@ class Database:
                     round_type TEXT NOT NULL,
                     scheduled_at TEXT,
                     duration_minutes INTEGER DEFAULT 45,
+                    meeting_link TEXT,
                     interviewer_info TEXT,
                     raw_input_source TEXT NOT NULL,
                     raw_input_text TEXT,
@@ -336,14 +337,15 @@ class Database:
             await db.execute("""
                 INSERT INTO interview_rounds (
                     id, company_id, user_id, round_number, round_title, round_type,
-                    scheduled_at, duration_minutes, interviewer_info, raw_input_source,
+                    scheduled_at, duration_minutes, meeting_link, interviewer_info, raw_input_source,
                     raw_input_text, audio_url, summary, candidate_feeling, feedback_received, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(id) DO UPDATE SET
                     round_title=excluded.round_title,
                     round_type=excluded.round_type,
                     scheduled_at=excluded.scheduled_at,
                     duration_minutes=excluded.duration_minutes,
+                    meeting_link=excluded.meeting_link,
                     interviewer_info=excluded.interviewer_info,
                     raw_input_source=excluded.raw_input_source,
                     raw_input_text=excluded.raw_input_text,
@@ -354,7 +356,7 @@ class Database:
             """, (
                 round_obj.id, round_obj.company_id, round_obj.user_id, round_obj.round_number,
                 round_obj.round_title, round_obj.round_type.value if hasattr(round_obj.round_type, 'value') else round_obj.round_type,
-                round_obj.scheduled_at, round_obj.duration_minutes, json.dumps(round_obj.interviewer_info),
+                round_obj.scheduled_at, round_obj.duration_minutes, round_obj.meeting_link, json.dumps(round_obj.interviewer_info),
                 round_obj.raw_input_source.value if hasattr(round_obj.raw_input_source, 'value') else round_obj.raw_input_source,
                 round_obj.raw_input_text, round_obj.audio_url, round_obj.summary, round_obj.candidate_feeling,
                 round_obj.feedback_received, round_obj.created_at

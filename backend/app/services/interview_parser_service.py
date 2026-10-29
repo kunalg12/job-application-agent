@@ -161,7 +161,13 @@ def parse_unstructured_interview_note(raw_text: str, source: RoundSource = Round
         if p99_sent:
             areas_to_improve = p99_sent[0].strip()
 
-    # 9. Clean Summary
+    # 9. Meeting Link
+    meeting_link = None
+    link_match = re.search(r'https?://(?:meet\.google\.com|[\w\.\-]*zoom\.us|teams\.microsoft\.com)/[^\s\<\>"\']+', cleaned_text)
+    if link_match:
+        meeting_link = link_match.group(0).strip()
+
+    # 10. Clean Summary
     first_paragraph = cleaned_text.split('\n\n')[0].strip()
     summary = cleaned_text[:300].strip()
 
@@ -171,6 +177,7 @@ def parse_unstructured_interview_note(raw_text: str, source: RoundSource = Round
         round_title=round_title,
         round_type=round_type,
         interviewer_names=interviewer_names,
+        meeting_link=meeting_link,
         key_topics=key_topics,
         questions_extracted=questions_extracted,
         candidate_feeling=candidate_feeling,
