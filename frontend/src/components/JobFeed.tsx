@@ -8,6 +8,7 @@ interface JobFeedProps {
   onStageJob: (jobId: string) => Promise<void>;
   onImportJob: (jobData: any) => Promise<void>;
   stagedJobIds: Set<string>;
+  presetFilter?: string | null;
 }
 
 export const JobFeed: React.FC<JobFeedProps> = ({
@@ -15,6 +16,7 @@ export const JobFeed: React.FC<JobFeedProps> = ({
   onStageJob,
   onImportJob,
   stagedJobIds,
+  presetFilter,
 }) => {
   const [search, setSearch] = useState('');
   const [remoteOnly, setRemoteOnly] = useState(false);
@@ -23,6 +25,17 @@ export const JobFeed: React.FC<JobFeedProps> = ({
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [stagingId, setStagingId] = useState<string | null>(null);
+
+  // Sync preset filters from sidebar
+  React.useEffect(() => {
+    if (presetFilter === 'highMatch') {
+      setHighMatchOnly(true);
+      setRemoteOnly(false);
+    } else if (presetFilter === 'remote') {
+      setRemoteOnly(true);
+      setHighMatchOnly(false);
+    }
+  }, [presetFilter]);
 
   const filteredJobs = jobs.filter((j) => {
     if (search) {
@@ -64,8 +77,16 @@ export const JobFeed: React.FC<JobFeedProps> = ({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by title, company, or skills (Python, FastAPI, React, GenAI)..."
-            className="input-apple w-full pl-9 pr-4 py-1.5 text-[14px]"
+            className="input-apple w-full pl-9 pr-8 py-1.5 text-[14px]"
           />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-2.5 top-2.5 w-4 h-4 rounded-full bg-[rgba(120,120,128,0.25)] text-white dark:text-black flex items-center justify-center text-[10px] cursor-pointer hover:bg-[rgba(120,120,128,0.4)]"
+            >
+              ✕
+            </button>
+          )}
         </div>
 
         {/* Filter Segmented Controls */}

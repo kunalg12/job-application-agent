@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
+import { Sidebar } from './components/Sidebar';
 import { MetricsBar } from './components/MetricsBar';
 import { JobFeed } from './components/JobFeed';
 import { ReviewQueue } from './components/ReviewQueue';
@@ -11,6 +12,9 @@ import { Job, Application, UserProfile, AppSettings, DashboardMetrics } from './
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'feed' | 'queue' | 'tracker'>('feed');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [feedFilterPreset, setFeedFilterPreset] = useState<string | null>(null);
+
   const [jobs, setJobs] = useState<Job[]>([]);
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [settings, setSettings] = useState<AppSettings | null>(null);
@@ -43,6 +47,18 @@ export const App: React.FC = () => {
     loadData();
     const interval = setInterval(loadData, 10000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Keyboard shortcut: Cmd/Ctrl + B to toggle sidebar
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'b') {
+        e.preventDefault();
+        setSidebarOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   const handleScan = async () => {
@@ -110,7 +126,9 @@ export const App: React.FC = () => {
   const queuedApps = applications.filter(a => a.status === 'STAGED' || a.status === 'ACTION_REQUIRED');
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col text-slate-900">
+    <div className="min-h-screen bg-[#F2F2F7] dark:bg-[#000000] flex flex-col text-black dark:text-white antialiased font-sans transition-colors">
+      
+      {/* macOS Top Window Header & Navigation */}
       <Navbar
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -119,40 +137,84 @@ export const App: React.FC = () => {
         isScanning={isScanning}
         onOpenSettings={() => setSettingsModalOpen(true)}
         onOpenProfile={() => setProfileModalOpen(true)}
+        sidebarOpen={sidebarOpen}
+        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1">
-        <MetricsBar metrics={metrics} queuedCount={queuedApps.length} />
+      {/* Main macOS Split View Layout */}
+      <div className="flex-1 flex overflow-hidden w-full">
+        
+        {/* macOS Translucent Sidebar */}
+        <Sidebar
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          queuedCount={queuedApps.length}
+          metrics={metrics}
+          onOpenProfile={() => setProfileModalOpen(true)}
+          onOpenSettings={() => setSettingsModalOpen(true)}
+          isOpen={sidebarOpen}
+          onSelectFilter={(filter) => {
+            setFeedFilterPreset(filter);
+            setTimeout(() => setFeedFilterPreset(null), 500);
+          }}
+        />
 
-        {activeTab === 'feed' && (
-          <JobFeed
-            jobs={jobs}
-            onStageJob={handleStageJob}
-            onImportJob={handleImportJob}
-            stagedJobIds={stagedJobIds}
-          />
-        )}
+        {/* Primary Content Stage */}
+        <main className="flex-1 overflow-y-auto px-4 sm:px-8 py-6 w-full max-w-7xl mx-auto">
+          
+          {/* Apple Large Title & Breadcrumb */}
+          <div className="mb-6">
+            <span className="text-[12px] font-semibold text-[#007AFF] dark:text-[#0A84FF] tracking-wide uppercase">
+              {activeTab === 'feed' ? 'Job Discovery Engine' : activeTab === 'queue' ? 'Staged Review & Outreach' : 'Pipeline Tracker'}
+            </span>
+            <h1 className="text-[30px] font-bold tracking-tight text-black dark:text-white mt-0.5">
+              {activeTab === 'feed' ? 'Explore Openings' : activeTab === 'queue' ? 'Review & Apply' : 'Applications History'}
+            </h1>
+            <p className="text-[13px] text-[rgba(60,60,67,0.65)] dark:text-[rgba(235,235,245,0.65)] mt-0.5">
+              {activeTab === 'feed' 
+                ? 'Curated tech and AI jobs matched specifically against your engineering resume.' 
+                : activeTab === 'queue' 
+                ? 'Inspect tailored cold outreach emails and formatted PDF cover letters before sending.' 
+                : 'Monitor responses, outreach logs, and interview progress across all companies.'}
+            </p>
+          </div>
 
-        {activeTab === 'queue' && (
-          <ReviewQueue
-            applications={applications}
-            onSendEmail={handleSendEmail}
-            onAutofill={handleAutofill}
-            onUpdateApplication={handleUpdateApplication}
-          />
-        )}
+          {/* Apple Stat Metric Tiles */}
+          <MetricsBar metrics={metrics} queuedCount={queuedApps.length} />
 
-        {activeTab === 'tracker' && (
-          <ApplicationsTracker
-            applications={applications}
-            onUpdateStatus={async (appId, status) => {
-              await handleUpdateApplication(appId, { status: status as any });
-            }}
-          />
-        )}
-      </main>
+          {/* Tab Views */}
+          {activeTab === 'feed' && (
+            <JobFeed
+              jobs={jobs}
+              onStageJob={handleStageJob}
+              onImportJob={handleImportJob}
+              stagedJobIds={stagedJobIds}
+              presetFilter={feedFilterPreset}
+            />
+          )}
 
-      {/* Settings Modal */}
+          {activeTab === 'queue' && (
+            <ReviewQueue
+              applications={applications}
+              onSendEmail={handleSendEmail}
+              onAutofill={handleAutofill}
+              onUpdateApplication={handleUpdateApplication}
+            />
+          )}
+
+          {activeTab === 'tracker' && (
+            <ApplicationsTracker
+              applications={applications}
+              onUpdateStatus={async (appId, status) => {
+                await handleUpdateApplication(appId, { status: status as any });
+              }}
+            />
+          )}
+        </main>
+
+      </div>
+
+      {/* Settings Modal Sheet */}
       <SettingsModal
         isOpen={settingsModalOpen}
         onClose={() => setSettingsModalOpen(false)}
@@ -160,7 +222,7 @@ export const App: React.FC = () => {
         onSave={handleSaveSettings}
       />
 
-      {/* Profile Modal */}
+      {/* Profile Modal Sheet */}
       <ProfileModal
         isOpen={profileModalOpen}
         onClose={() => setProfileModalOpen(false)}

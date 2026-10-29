@@ -93,11 +93,40 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               Automation Mode & Safeguards
             </h4>
 
-            {/* Mode Selector (Apple HIG Cards) */}
+            {/* Apple Native Toggle Row */}
+            <div className="flex items-center justify-between p-3.5 rounded-[14px] bg-[rgba(120,120,128,0.06)] dark:bg-[rgba(120,120,128,0.12)]">
+              <div>
+                <span className="font-semibold text-black dark:text-white text-[14px] flex items-center gap-1.5">
+                  <Zap className={`w-4 h-4 ${formData.autonomous_mode ? 'text-[#FF9500]' : 'text-[rgba(60,60,67,0.5)]'}`} strokeWidth={1.75} />
+                  <span>Autonomous Auto-Pilot (Tier 2)</span>
+                </span>
+                <span className="text-[12px] text-[rgba(60,60,67,0.65)] dark:text-[rgba(235,235,245,0.65)] block mt-0.5">
+                  {formData.autonomous_mode 
+                    ? `Auto-dispatches applications for jobs with fit score ≥ ${formData.auto_apply_threshold}%` 
+                    : 'Supervised 1-Click: Staged for review in queue before sending'}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, autonomous_mode: !formData.autonomous_mode })}
+                className={`w-[51px] h-[31px] rounded-full p-[2px] transition-colors duration-200 cursor-pointer shrink-0 ${
+                  formData.autonomous_mode ? 'bg-[#34C759]' : 'bg-[rgba(120,120,128,0.22)]'
+                }`}
+                title="Toggle Autonomous Auto-Pilot"
+              >
+                <div
+                  className={`w-[27px] h-[27px] rounded-full bg-white shadow-apple-1 transition-transform duration-200 ${
+                    formData.autonomous_mode ? 'translate-x-[20px]' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Mode Cards (Supervised vs Auto-Pilot) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div
                 onClick={() => setFormData({ ...formData, autonomous_mode: false })}
-                className={`p-4 rounded-[14px] border cursor-pointer transition-all ${
+                className={`p-3.5 rounded-[12px] border cursor-pointer transition-all ${
                   !formData.autonomous_mode
                     ? 'border-[#007AFF] bg-[#007AFF]/5 dark:bg-[#0A84FF]/10 shadow-apple-1'
                     : 'border-[rgba(60,60,67,0.12)] dark:border-[rgba(84,84,88,0.35)] hover:bg-[rgba(120,120,128,0.05)]'
@@ -105,18 +134,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               >
                 <div className="flex items-center space-x-2 mb-1">
                   <Shield className="w-4 h-4 text-[#007AFF]" strokeWidth={1.75} />
-                  <span className="font-semibold text-black dark:text-white text-[14px]">
-                    Supervised 1-Click
+                  <span className="font-semibold text-black dark:text-white text-[13px]">
+                    Tier 1: Supervised (Default)
                   </span>
                 </div>
-                <p className="text-[12px] text-[rgba(60,60,67,0.7)] dark:text-[rgba(235,235,245,0.7)] leading-relaxed">
-                  Aggregates and stages tailored letters in queue, requiring your 1-click confirmation before dispatch.
+                <p className="text-[11px] text-[rgba(60,60,67,0.7)] dark:text-[rgba(235,235,245,0.7)] leading-relaxed">
+                  Agent aggregates jobs and prepares tailored letters, but requires your 1-click confirmation.
                 </p>
               </div>
 
               <div
                 onClick={() => setFormData({ ...formData, autonomous_mode: true })}
-                className={`p-4 rounded-[14px] border cursor-pointer transition-all ${
+                className={`p-3.5 rounded-[12px] border cursor-pointer transition-all ${
                   formData.autonomous_mode
                     ? 'border-[#FF9500] bg-[#FF9500]/5 dark:bg-[#FF9F0A]/10 shadow-apple-1'
                     : 'border-[rgba(60,60,67,0.12)] dark:border-[rgba(84,84,88,0.35)] hover:bg-[rgba(120,120,128,0.05)]'
@@ -124,11 +153,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               >
                 <div className="flex items-center space-x-2 mb-1">
                   <Zap className="w-4 h-4 text-[#FF9500]" strokeWidth={1.75} />
-                  <span className="font-semibold text-black dark:text-white text-[14px]">
-                    Autonomous Auto-Pilot
+                  <span className="font-semibold text-black dark:text-white text-[13px]">
+                    Tier 2: Full Auto-Pilot
                   </span>
                 </div>
-                <p className="text-[12px] text-[rgba(60,60,67,0.7)] dark:text-[rgba(235,235,245,0.7)] leading-relaxed">
+                <p className="text-[11px] text-[rgba(60,60,67,0.7)] dark:text-[rgba(235,235,245,0.7)] leading-relaxed">
                   Automatically dispatches emails and submits forms for jobs matching your score threshold.
                 </p>
               </div>
@@ -240,6 +269,31 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 placeholder="Kunal Gursal"
                 className="input-apple w-full px-3 py-2 text-[14px]"
               />
+            </div>
+
+            {/* Apple Toggle: TLS Encryption */}
+            <div className="flex items-center justify-between p-3 rounded-[12px] bg-[rgba(120,120,128,0.06)] dark:bg-[rgba(120,120,128,0.12)]">
+              <div>
+                <span className="font-semibold text-black dark:text-white text-[13px] block">
+                  Use TLS/SSL Encryption
+                </span>
+                <span className="text-[11px] text-[rgba(60,60,67,0.65)] dark:text-[rgba(235,235,245,0.65)]">
+                  Secure cryptographic handshake for outgoing emails
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, smtp: { ...formData.smtp, use_tls: !formData.smtp.use_tls } })}
+                className={`w-[51px] h-[31px] rounded-full p-[2px] transition-colors duration-200 cursor-pointer shrink-0 ${
+                  formData.smtp.use_tls ? 'bg-[#34C759]' : 'bg-[rgba(120,120,128,0.22)]'
+                }`}
+              >
+                <div
+                  className={`w-[27px] h-[27px] rounded-full bg-white shadow-apple-1 transition-transform duration-200 ${
+                    formData.smtp.use_tls ? 'translate-x-[20px]' : 'translate-x-0'
+                  }`}
+                />
+              </button>
             </div>
 
             {/* Test Email Box */}
