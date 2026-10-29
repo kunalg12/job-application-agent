@@ -70,7 +70,14 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({
     setActionSuccess(null);
     setActionError(null);
     try {
-      await onAutofill(selectedApp.id);
+      const res: any = await onAutofill(selectedApp.id);
+      if (res?.clipboard_payload) {
+        try {
+          await navigator.clipboard.writeText(res.clipboard_payload);
+          setActionSuccess('Autofill executed! Candidate details and cover letter copied to clipboard for quick paste.');
+          return;
+        } catch (_) {}
+      }
       setActionSuccess('Playwright autofill executed! Form filled with your resume details.');
     } catch (err: any) {
       setActionError(err.response?.data?.detail || err.message || 'Autofill error.');
@@ -176,31 +183,52 @@ export const ReviewQueue: React.FC<ReviewQueueProps> = ({
               </div>
             </div>
 
-            {/* Tab Pills */}
-            <div className="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-medium self-start sm:self-auto">
+            {/* Tab Pills & Save Button */}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-medium">
+                <button
+                  onClick={() => setActiveTab('email')}
+                  className={`px-3 py-1.5 rounded-lg transition-all ${
+                    activeTab === 'email' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Recruiter Email
+                </button>
+                <button
+                  onClick={() => setActiveTab('coverLetter')}
+                  className={`px-3 py-1.5 rounded-lg transition-all ${
+                    activeTab === 'coverLetter' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Cover Letter
+                </button>
+                <button
+                  onClick={() => setActiveTab('analysis')}
+                  className={`px-3 py-1.5 rounded-lg transition-all ${
+                    activeTab === 'analysis' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Fit Analysis
+                </button>
+              </div>
+
               <button
-                onClick={() => setActiveTab('email')}
-                className={`px-3 py-1.5 rounded-lg transition-all ${
-                  activeTab === 'email' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                }`}
+                type="button"
+                onClick={async () => {
+                  if (selectedApp) {
+                    await onUpdateApplication(selectedApp.id, {
+                      recruiter_email: recipientEmail,
+                      email_subject: emailSubject,
+                      email_body: emailBody,
+                      cover_letter: coverLetterText,
+                    });
+                    setActionSuccess('Saved draft changes to database.');
+                    setTimeout(() => setActionSuccess(null), 3000);
+                  }
+                }}
+                className="px-3 py-1.5 text-xs font-medium border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors text-slate-700"
               >
-                Recruiter Email
-              </button>
-              <button
-                onClick={() => setActiveTab('coverLetter')}
-                className={`px-3 py-1.5 rounded-lg transition-all ${
-                  activeTab === 'coverLetter' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Cover Letter
-              </button>
-              <button
-                onClick={() => setActiveTab('analysis')}
-                className={`px-3 py-1.5 rounded-lg transition-all ${
-                  activeTab === 'analysis' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Fit Analysis
+                Save Draft
               </button>
             </div>
           </div>

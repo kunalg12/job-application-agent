@@ -20,15 +20,11 @@ def extract_recruiter_email(description: str, company: Optional[str] = None, com
     if valid_matches:
         return valid_matches[0]
 
-    # 2. Domain heuristic fallback if domain or company provided
+    # 2. Domain heuristic fallback ONLY if real company domain is provided
     if company_domain:
         clean_domain = company_domain.lower().replace("www.", "").strip("/")
-        return f"careers@{clean_domain}"
-    elif company:
-        # Heuristic: convert company name to slug
-        slug = re.sub(r'[^a-zA-Z0-9]', '', company).lower()
-        if len(slug) >= 3:
-            return f"careers@{slug}.com"
+        if "." in clean_domain:
+            return f"careers@{clean_domain}"
 
     return None
 

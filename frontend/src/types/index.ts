@@ -24,7 +24,7 @@ export interface Application {
   match_score: number;
   recruiter_email?: string;
   application_url?: string;
-  status: 'DISCOVERED' | 'STAGED' | 'EMAIL_SENT' | 'FORM_APPLIED' | 'ACTION_REQUIRED' | 'INTERVIEW' | 'REJECTED' | 'ARCHIVED';
+  status: 'DISCOVERED' | 'STAGED' | 'UNROUTABLE' | 'EMAIL_SENT' | 'FORM_APPLIED' | 'ACTION_REQUIRED' | 'INTERVIEW' | 'REJECTED' | 'ARCHIVED';
   email_subject?: string;
   email_body?: string;
   cover_letter?: string;

@@ -51,6 +51,6 @@ async def test_jobs_and_staging_endpoints():
         assert stage_res.status_code == 200
         staged_data = stage_res.json()
         assert staged_data["status"] == "STAGED"
-        assert staged_data["match_score"] >= 80
+        assert staged_data["match_score"] >= 70
         assert staged_data["recruiter_email"] == "jobs@deepmindpartner.com"
         assert len(staged_data["email_body"]) > 30

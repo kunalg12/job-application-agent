@@ -13,7 +13,9 @@ from backend.app.services.email_service import EmailDispatcher
 from backend.app.services.automation_service import autofill_job_application
 
 router = APIRouter(prefix="/api/applications", tags=["Applications"])
-db = Database(settings.db_path)
+
+def get_db() -> Database:
+    return Database(settings.db_path)
 
 class UpdateApplicationPayload(BaseModel):
     status: Optional[str] = None
@@ -30,10 +32,11 @@ class SendEmailPayload(BaseModel):
 
 @router.get("", response_model=List[Application])
 async def list_applications():
-    return await db.list_applications(limit=100)
+    return await get_db().list_applications(limit=100)
 
 @router.post("/stage/{job_id}", response_model=Application)
 async def stage_application(job_id: str):
+    db = get_db()
     job = await db.get_job_by_id(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -50,6 +53,11 @@ async def stage_application(job_id: str):
     pdf_path = f"{pdf_dir}/Cover_Letter_{job.company.replace(' ', '_')}_{job.id}.pdf"
     build_cover_letter_pdf(cover_letter_text, profile, job, pdf_path)
 
+    # Determine status: if neither email nor url is available, flag as UNROUTABLE
+    initial_status = "STAGED"
+    if not job.recruiter_email and not job.url:
+        initial_status = "UNROUTABLE"
+
     app_id = f"app_{job.id}"
     app = Application(
         id=app_id,
@@ -59,7 +67,7 @@ async def stage_application(job_id: str):
         match_score=analysis.match_score,
         recruiter_email=job.recruiter_email,
         application_url=job.url,
-        status="STAGED",
+        status=initial_status,
         email_subject=email_draft["subject"],
         email_body=email_draft["body"],
         cover_letter=cover_letter_text,
@@ -72,6 +80,7 @@ async def stage_application(job_id: str):
 
 @router.post("/{app_id}/email")
 async def send_email_for_application(app_id: str, payload: Optional[SendEmailPayload] = None):
+    db = get_db()
     app = await db.get_application_by_id(app_id)
     if not app:
         raise HTTPException(status_code=404, detail="Application not found")
@@ -94,11 +103,15 @@ async def send_email_for_application(app_id: str, payload: Optional[SendEmailPay
     if not to_email:
         raise HTTPException(status_code=400, detail="No recipient email address specified for this job.")
 
-    # Prepare attachments (user resume + generated cover letter PDF)
-    attachments = []
+    # Validate that candidate's resume PDF actually exists on disk before dispatching
     resume_path = profile.resume_file_path or settings.default_resume_path
-    if resume_path and os.path.exists(resume_path):
-        attachments.append(resume_path)
+    if not resume_path or not os.path.exists(resume_path):
+        raise HTTPException(
+            status_code=400,
+            detail="Resume PDF file not found. Please upload your resume in Candidate Profile settings before sending applications."
+        )
+
+    attachments = [resume_path]
     if app.cover_letter_pdf_path and os.path.exists(app.cover_letter_pdf_path):
         attachments.append(app.cover_letter_pdf_path)
 
@@ -114,6 +127,10 @@ async def send_email_for_application(app_id: str, payload: Optional[SendEmailPay
         await db.log_audit("EMAIL_SENT", f"Failed email to {to_email} for {app.job_title}: {message}", "FAILURE")
         raise HTTPException(status_code=400, detail=message)
 
+    # Persist user edits and mark sent
+    app.recruiter_email = to_email
+    app.email_subject = subject
+    app.email_body = body
     app.status = "EMAIL_SENT"
     app.applied_at = datetime.now(timezone.utc).isoformat()
     await db.save_application(app)
@@ -122,6 +139,7 @@ async def send_email_for_application(app_id: str, payload: Optional[SendEmailPay
 
 @router.post("/{app_id}/autofill")
 async def autofill_for_application(app_id: str, headless: bool = False):
+    db = get_db()
     app = await db.get_application_by_id(app_id)
     if not app:
         raise HTTPException(status_code=404, detail="Application not found")
@@ -147,6 +165,7 @@ async def autofill_for_application(app_id: str, headless: bool = False):
 
 @router.patch("/{app_id}", response_model=Application)
 async def update_application(app_id: str, payload: UpdateApplicationPayload):
+    db = get_db()
     app = await db.get_application_by_id(app_id)
     if not app:
         raise HTTPException(status_code=404, detail="Application not found")
@@ -161,6 +180,12 @@ async def update_application(app_id: str, payload: UpdateApplicationPayload):
         app.email_body = payload.email_body
     if payload.cover_letter:
         app.cover_letter = payload.cover_letter
+        # Rebuild PDF with updated text
+        if app.cover_letter_pdf_path:
+            job_obj = await db.get_job_by_id(app.job_id)
+            if job_obj:
+                profile_obj = await db.get_profile()
+                build_cover_letter_pdf(payload.cover_letter, profile_obj, job_obj, app.cover_letter_pdf_path)
     if payload.recruiter_email:
         app.recruiter_email = payload.recruiter_email
 
@@ -169,6 +194,7 @@ async def update_application(app_id: str, payload: UpdateApplicationPayload):
 
 @router.get("/{app_id}/pdf")
 async def get_cover_letter_pdf(app_id: str):
+    db = get_db()
     app = await db.get_application_by_id(app_id)
     if not app or not app.cover_letter_pdf_path or not os.path.exists(app.cover_letter_pdf_path):
         raise HTTPException(status_code=404, detail="PDF not found")

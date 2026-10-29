@@ -43,6 +43,12 @@ export const ApplicationsTracker: React.FC<ApplicationsTrackerProps> = ({
             <AlertCircle className="w-3 h-3 mr-1 text-amber-500" /> Action Required
           </span>
         );
+      case 'UNROUTABLE':
+        return (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+            <AlertCircle className="w-3 h-3 mr-1 text-amber-500" /> Unroutable (Add Link/Email)
+          </span>
+        );
       default:
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">

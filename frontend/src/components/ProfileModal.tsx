@@ -175,15 +175,67 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1.5">
-              Extracted Resume Skills ({formData.skills.length})
-            </label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-medium text-slate-700">
+                Skills & Technical Competencies ({formData.skills.length})
+              </label>
+              <span className="text-[11px] text-slate-400">Click × to remove, or add new below</span>
+            </div>
+
+            {/* Add Skill Input */}
+            <div className="flex gap-2 mb-2">
+              <input
+                type="text"
+                id="new-skill-input"
+                placeholder="Type a skill (e.g. PyTorch, Kubernetes) and click Add..."
+                className="flex-1 px-3 py-1.5 border border-slate-300 rounded-lg text-xs"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const val = e.currentTarget.value.trim();
+                    if (val && !formData.skills.includes(val)) {
+                      setFormData({ ...formData, skills: [...formData.skills, val] });
+                      e.currentTarget.value = '';
+                    }
+                  }
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  const input = document.getElementById('new-skill-input') as HTMLInputElement;
+                  if (input && input.value.trim() && !formData.skills.includes(input.value.trim())) {
+                    setFormData({ ...formData, skills: [...formData.skills, input.value.trim()] });
+                    input.value = '';
+                  }
+                }}
+                className="px-3 py-1.5 bg-slate-800 text-white rounded-lg text-xs font-medium hover:bg-slate-900"
+              >
+                Add Skill
+              </button>
+            </div>
+
             <div className="flex flex-wrap gap-1.5 p-3 bg-slate-50 rounded-xl border border-slate-200 max-h-36 overflow-y-auto">
               {formData.skills.map((skill) => (
-                <span key={skill} className="px-2 py-0.5 bg-white border border-slate-200 text-slate-800 rounded text-xs font-medium">
-                  {skill}
+                <span key={skill} className="inline-flex items-center space-x-1 px-2.5 py-1 bg-white border border-slate-200 text-slate-800 rounded-lg text-xs font-medium shadow-2xs">
+                  <span>{skill}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData({
+                        ...formData,
+                        skills: formData.skills.filter((s) => s !== skill),
+                      });
+                    }}
+                    className="text-slate-400 hover:text-rose-600 font-bold ml-1"
+                  >
+                    ×
+                  </button>
                 </span>
               ))}
+              {formData.skills.length === 0 && (
+                <span className="text-xs text-slate-400 italic">No skills listed. Type above to add skills.</span>
+              )}
             </div>
           </div>
 

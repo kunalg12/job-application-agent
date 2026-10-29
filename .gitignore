@@ -7,3 +7,5 @@ dist/
 .DS_Store
 backend/data/*.db
 *.log
+.pytest_cache/
+.superpowers/

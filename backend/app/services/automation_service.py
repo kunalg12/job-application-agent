@@ -10,6 +10,7 @@ class FormFillResult(BaseModel):
     unmapped_fields: List[str] = []
     screenshot_path: Optional[str] = None
     message: str = ""
+    clipboard_payload: Optional[str] = None
 
 FIELD_PATTERNS = {
     "profile.first_name": [r"first.*name", r"fname", r"^first$"],
@@ -71,20 +72,38 @@ async def autofill_job_application(
             page = await browser.new_page()
             await page.goto(job_url, timeout=30000, wait_until="domcontentloaded")
 
-            # Extract interactive inputs
-            inputs = await page.query_selector_all("input, textarea, select")
+            # Generate candidate clipboard payload for manual fallback
+            clipboard_payload = (
+                f"Candidate: {profile.name}\n"
+                f"Email: {profile.email}\n"
+                f"Phone: {profile.phone}\n"
+                f"Location: {profile.location}\n"
+                f"LinkedIn: {profile.linkedin}\n"
+                f"GitHub: {profile.github}\n"
+                f"Work Authorization: {profile.work_authorization}\n"
+                f"Notice Period: {profile.notice_period}\n\n"
+                f"--- COVER LETTER ---\n{cover_letter or ''}"
+            )
+
+            # Extract interactive inputs across all page frames (including iframes)
             dom_elements = []
-            for inp in inputs:
-                el_id = await inp.get_attribute("id") or ""
-                el_name = await inp.get_attribute("name") or ""
-                el_type = await inp.get_attribute("type") or "text"
-                required = await inp.get_attribute("required") is not None
-                dom_elements.append({
-                    "id": el_id,
-                    "name": el_name,
-                    "type": el_type,
-                    "required": required
-                })
+            target_frames = [page] + page.frames
+            for frame in target_frames:
+                try:
+                    inputs = await frame.query_selector_all("input, textarea, select")
+                    for inp in inputs:
+                        el_id = await inp.get_attribute("id") or ""
+                        el_name = await inp.get_attribute("name") or ""
+                        el_type = await inp.get_attribute("type") or "text"
+                        required = await inp.get_attribute("required") is not None
+                        dom_elements.append({
+                            "id": el_id,
+                            "name": el_name,
+                            "type": el_type,
+                            "required": required
+                        })
+                except Exception:
+                    pass
 
             mapping, unmapped_required = map_ats_fields(dom_elements)
             filled = []
@@ -95,7 +114,6 @@ async def autofill_job_application(
             last_name = " ".join(name_parts[1:]) if len(name_parts) > 1 else ""
 
             for key, target in mapping.items():
-                selector = f"#{key}" if not key.startswith("#") else key
                 val = None
                 if target == "profile.first_name":
                     val = first_name
@@ -116,20 +134,20 @@ async def autofill_job_application(
                 elif target == "cover_letter_text":
                     val = cover_letter
 
-                if val:
+                for frame in target_frames:
                     try:
-                        el = await page.query_selector(f"input[name='{key}'], input#{key}, textarea[name='{key}'], textarea#{key}")
-                        if el:
-                            await el.fill(val)
-                            filled.append(key)
-                    except Exception:
-                        pass
-                elif target == "profile.resume_file_path" and resume_path and os.path.exists(resume_path):
-                    try:
-                        file_input = await page.query_selector(f"input[type='file'][name='{key}'], input[type='file']#{key}, input[type='file']")
-                        if file_input:
-                            await file_input.set_input_files(resume_path)
-                            filled.append(key)
+                        if val:
+                            el = await frame.query_selector(f"input[name='{key}'], input#{key}, textarea[name='{key}'], textarea#{key}")
+                            if el:
+                                await el.fill(val)
+                                filled.append(key)
+                                break
+                        elif target == "profile.resume_file_path" and resume_path and os.path.exists(resume_path):
+                            file_input = await frame.query_selector(f"input[type='file'][name='{key}'], input[type='file']#{key}, input[type='file']")
+                            if file_input:
+                                await file_input.set_input_files(resume_path)
+                                filled.append(key)
+                                break
                     except Exception:
                         pass
 
@@ -138,7 +156,10 @@ async def autofill_job_application(
             os.makedirs(screenshot_dir, exist_ok=True)
             screenshot_path = f"{screenshot_dir}/autofill_{abs(hash(job_url))}.png"
             await page.screenshot(path=screenshot_path)
-            await browser.close()
+            
+            # In headless mode close browser; in supervised mode keep open for user review
+            if headless:
+                await browser.close()
 
             status = "ACTION_REQUIRED" if unmapped_required else "FILLED"
             msg = f"Autofilled {len(filled)} fields."
@@ -150,7 +171,8 @@ async def autofill_job_application(
                 filled_fields=filled,
                 unmapped_fields=unmapped_required,
                 screenshot_path=screenshot_path,
-                message=msg
+                message=msg,
+                clipboard_payload=clipboard_payload
             )
     except Exception as e:
         return FormFillResult(

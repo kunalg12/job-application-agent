@@ -31,7 +31,7 @@ class Application(BaseModel):
     match_score: int = 0
     recruiter_email: Optional[str] = None
     application_url: Optional[str] = None
-    status: str = "DISCOVERED" # DISCOVERED, STAGED, EMAIL_SENT, FORM_APPLIED, INTERVIEW, REJECTED
+    status: str = "DISCOVERED" # DISCOVERED, STAGED, UNROUTABLE, EMAIL_SENT, FORM_APPLIED, INTERVIEW, REJECTED, ARCHIVED
     email_subject: Optional[str] = None
     email_body: Optional[str] = None
     cover_letter: Optional[str] = None
@@ -41,6 +41,12 @@ class Application(BaseModel):
     notes: Optional[str] = None
     applied_at: Optional[str] = None
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+DEFAULT_SKILLS = [
+    "Python", "FastAPI", "React", "TypeScript", "JavaScript", "Docker",
+    "PostgreSQL", "MongoDB", "Node.js", "Tailwind CSS", "Git", "REST",
+    "GenAI", "LLM", "Prompt Engineering", "OpenAI", "LangChain"
+]
 
 class UserProfile(BaseModel):
     name: str = "Kunal Gursal"
@@ -52,7 +58,7 @@ class UserProfile(BaseModel):
     linkedin: Optional[str] = "https://linkedin.com/in/kunal-gursal"
     github: Optional[str] = "https://github.com/kunalgursal"
     portfolio: Optional[str] = None
-    skills: List[str] = Field(default_factory=list)
+    skills: List[str] = Field(default_factory=lambda: list(DEFAULT_SKILLS))
     work_authorization: str = "Authorized to work in India / Remote globally / Open to Visa sponsorship"
     notice_period: str = "Immediate / 30 Days"
     salary_expectation: str = "$90,000 - $130,000 / ₹25L - ₹35L"

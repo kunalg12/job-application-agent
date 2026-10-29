@@ -23,6 +23,7 @@ class Database:
 
     async def _run_init_tables(self) -> None:
         async with aiosqlite.connect(self.db_path) as db:
+            await db.execute("PRAGMA journal_mode=WAL;")
             await db.execute("""
                 CREATE TABLE IF NOT EXISTS jobs (
                     id TEXT PRIMARY KEY,
@@ -30,7 +31,7 @@ class Database:
                     company TEXT NOT NULL,
                     location TEXT,
                     description TEXT,
-                    url TEXT UNIQUE,
+                    url TEXT,
                     source TEXT,
                     recruiter_email TEXT,
                     salary TEXT,

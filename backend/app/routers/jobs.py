@@ -8,7 +8,9 @@ from backend.app.services.scraper_service import fetch_all_jobs, parse_custom_jo
 from backend.app.services.matcher_service import evaluate_job_match
 
 router = APIRouter(prefix="/api/jobs", tags=["Jobs"])
-db = Database(settings.db_path)
+
+def get_db() -> Database:
+    return Database(settings.db_path)
 
 class ImportJobRequest(BaseModel):
     title: str
@@ -32,6 +34,7 @@ async def get_jobs(
     min_score: int = 0,
     limit: int = 100
 ):
+    db = get_db()
     profile = await db.get_profile()
     all_jobs = await db.list_jobs(limit=limit)
     
@@ -60,6 +63,7 @@ async def get_jobs(
     return results
 
 async def run_scan_worker():
+    db = get_db()
     profile = await db.get_profile()
     app_settings = await db.get_settings()
     jobs = await fetch_all_jobs(max_per_source=25)
@@ -80,6 +84,7 @@ async def trigger_scan(background_tasks: BackgroundTasks):
 
 @router.post("/import", response_model=Job)
 async def import_job(payload: ImportJobRequest):
+    db = get_db()
     custom_text = f"Title: {payload.title}\nCompany: {payload.company}\nLocation: {payload.location}\n{payload.description}"
     job = parse_custom_job_text(custom_text, custom_url=payload.url)
     job.title = payload.title
