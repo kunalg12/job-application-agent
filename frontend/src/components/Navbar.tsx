@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bot, RefreshCw, Zap, Shield, User, Settings as SettingsIcon, PanelLeft, Sun, Moon } from 'lucide-react';
+import { Bot, RefreshCw, Zap, Shield, User, Settings as SettingsIcon, PanelLeft, Sun, Moon, Mic } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
 interface NavbarProps {
@@ -10,6 +10,7 @@ interface NavbarProps {
   isScanning: boolean;
   onOpenSettings: () => void;
   onOpenProfile: () => void;
+  onOpenVoiceRecorder?: () => void;
   sidebarOpen: boolean;
   onToggleSidebar: () => void;
 }
@@ -22,6 +23,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   isScanning,
   onOpenSettings,
   onOpenProfile,
+  onOpenVoiceRecorder,
   sidebarOpen,
   onToggleSidebar,
 }) => {
@@ -129,6 +131,16 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isScanning ? 'animate-spin' : ''}`} strokeWidth={1.75} />
             <span className="hidden sm:inline">{isScanning ? 'Scanning...' : 'Scan Jobs'}</span>
+          </button>
+
+          {/* AI Notetaker / Voice Debrief Trigger */}
+          <button
+            onClick={onOpenVoiceRecorder}
+            className="btn-apple-secondary text-[12px] px-3 py-1.5 h-7.5 gap-1.5 cursor-pointer text-[#FF3B30] dark:text-[#FF453A]"
+            title="Record Interview Voice Debrief (AI Notetaker)"
+          >
+            <Mic className="w-3.5 h-3.5" strokeWidth={1.75} />
+            <span className="hidden md:inline">Voice Debrief</span>
           </button>
 
           {/* Theme Toggle Button (Light/Dark Mode) */}

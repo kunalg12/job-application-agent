@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Job, Application, UserProfile, AppSettings, DashboardMetrics } from '../types';
+import { Job, Application, UserProfile, AppSettings, DashboardMetrics, InterviewRound, RoundPrepBriefing, InterviewQuestion } from '../types';
 
 const client = axios.create({
   baseURL: '/api',
@@ -80,6 +80,56 @@ export const api = {
   },
   getMetrics: async () => {
     const res = await client.get<DashboardMetrics>('/settings/metrics');
+    return res.data;
+  },
+
+  // SaaS Interview Rounds & Voice Ingestion
+  uploadVoiceRecording: async (formData: FormData) => {
+    const res = await client.post<{
+      status: string;
+      transcript: string;
+      round_id: string;
+      round: InterviewRound;
+      parsed_context: any;
+    }>('/ingest/voice', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return res.data;
+  },
+  ingestText: async (data: { raw_text: string; user_id: string; company_name?: string }) => {
+    const res = await client.post<{
+      status: string;
+      round_id: string;
+      round: InterviewRound;
+      parsed_context: any;
+    }>('/ingest/text', data);
+    return res.data;
+  },
+  getCompanyRounds: async (companyId: string, userId: string = 'default-user') => {
+    const res = await client.get<InterviewRound[]>(`/companies/${encodeURIComponent(companyId)}/rounds`, {
+      params: { user_id: userId },
+    });
+    return res.data;
+  },
+  getRoundDetail: async (roundId: string, userId: string = 'default-user') => {
+    const res = await client.get<{ round: InterviewRound; questions: InterviewQuestion[] }>(
+      `/rounds/${roundId}`,
+      { params: { user_id: userId } }
+    );
+    return res.data;
+  },
+  getRoundPrepBriefing: async (roundId: string, userId: string = 'default-user') => {
+    const res = await client.get<RoundPrepBriefing>(`/rounds/${roundId}/prep`, {
+      params: { user_id: userId },
+    });
+    return res.data;
+  },
+  generateThankYouNote: async (roundId: string, userId: string = 'default-user') => {
+    const res = await client.post<{ subject: string; body: string }>(
+      `/rounds/${roundId}/thank-you`,
+      null,
+      { params: { user_id: userId } }
+    );
     return res.data;
   },
 };

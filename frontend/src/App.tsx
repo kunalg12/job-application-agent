@@ -7,6 +7,7 @@ import { ReviewQueue } from './components/ReviewQueue';
 import { ApplicationsTracker } from './components/ApplicationsTracker';
 import { SettingsModal } from './components/SettingsModal';
 import { ProfileModal } from './components/ProfileModal';
+import { VoiceRecorderModal } from './components/VoiceRecorderModal';
 import { api } from './services/api';
 import { Job, Application, UserProfile, AppSettings, DashboardMetrics } from './types';
 
@@ -23,6 +24,8 @@ export const App: React.FC = () => {
   const [isScanning, setIsScanning] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
+  const [voiceRecorderOpen, setVoiceRecorderOpen] = useState(false);
+  const [selectedCompanyForRecorder, setSelectedCompanyForRecorder] = useState('');
 
   const loadData = async () => {
     try {
@@ -137,6 +140,10 @@ export const App: React.FC = () => {
         isScanning={isScanning}
         onOpenSettings={() => setSettingsModalOpen(true)}
         onOpenProfile={() => setProfileModalOpen(true)}
+        onOpenVoiceRecorder={() => {
+          setSelectedCompanyForRecorder('');
+          setVoiceRecorderOpen(true);
+        }}
         sidebarOpen={sidebarOpen}
         onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
       />
@@ -229,6 +236,14 @@ export const App: React.FC = () => {
         profile={profile}
         onSave={handleSaveProfile}
         onUploadResume={handleUploadResume}
+      />
+
+      {/* Voice Recorder Modal Sheet */}
+      <VoiceRecorderModal
+        isOpen={voiceRecorderOpen}
+        onClose={() => setVoiceRecorderOpen(false)}
+        defaultCompany={selectedCompanyForRecorder}
+        onRoundSaved={() => loadData()}
       />
     </div>
   );

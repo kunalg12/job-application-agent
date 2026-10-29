@@ -83,3 +83,54 @@ export interface DashboardMetrics {
   autonomous_mode: boolean;
   auto_apply_threshold: number;
 }
+
+export type RoundType =
+  | 'RECRUITER_SCREEN'
+  | 'TECH_CODING'
+  | 'SYSTEM_DESIGN'
+  | 'BEHAVIORAL'
+  | 'MANAGER'
+  | 'EXECUTIVE'
+  | 'FINAL_ROUND';
+
+export type RoundSource = 'VOICE_NOTE' | 'EMAIL_FORWARD' | 'SCRATCHPAD' | 'MANUAL';
+
+export interface InterviewQuestion {
+  id: string;
+  round_id: string;
+  user_id: string;
+  question_text: string;
+  question_category: string;
+  candidate_answer_notes?: string;
+  areas_to_improve?: string;
+  created_at: string;
+}
+
+export interface InterviewRound {
+  id: string;
+  company_id: string;
+  user_id: string;
+  round_number: number;
+  round_title: string;
+  round_type: RoundType;
+  scheduled_at?: string;
+  duration_minutes: number;
+  meeting_link?: string;
+  interviewer_info: Array<{ name: string; role?: string } | any>;
+  raw_input_source: RoundSource;
+  raw_input_text?: string;
+  audio_url?: string;
+  summary?: string;
+  candidate_feeling?: 'STRONG_YES' | 'YES' | 'MODERATE' | 'NEUTRAL' | 'UNSURE' | 'CONCERNED';
+  feedback_received?: string;
+  created_at: string;
+}
+
+export interface RoundPrepBriefing {
+  company_name: string;
+  round_title: string;
+  overview: string;
+  key_topics_to_review: string[];
+  predicted_questions: string[];
+  tips_based_on_history: string[];
+}
