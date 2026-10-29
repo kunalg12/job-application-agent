@@ -143,6 +143,12 @@ class Database:
                 )
             """)
 
+            # Auto-migrate meeting_link on interview_rounds if missing
+            try:
+                await db.execute("ALTER TABLE interview_rounds ADD COLUMN meeting_link TEXT;")
+            except Exception:
+                pass
+
             await db.execute("CREATE INDEX IF NOT EXISTS idx_rounds_user_company ON interview_rounds(user_id, company_id);")
             await db.execute("CREATE INDEX IF NOT EXISTS idx_questions_round ON interview_questions(user_id, round_id);")
             await db.commit()
