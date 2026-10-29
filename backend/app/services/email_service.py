@@ -18,18 +18,25 @@ class EmailDispatcher:
         body: str,
         attachment_paths: Optional[List[str]] = None
     ) -> Tuple[bool, str]:
-        # Validation
-        if not to_email or not re.match(r"[^@]+@[^@]+\.[^@]+", to_email):
+        # Validation & Header Injection Defense
+        if not to_email or '\r' in to_email or '\n' in to_email:
             return False, f"Invalid recipient email address: '{to_email}'"
+
+        clean_to_email = to_email.strip()
+        if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", clean_to_email):
+            return False, f"Invalid recipient email address: '{to_email}'"
+
+        clean_subject = re.sub(r'[\r\n]+', ' ', subject).strip() if subject else ""
 
         if not self.settings.username or not self.settings.password:
             return False, "SMTP credentials are not configured. Please enter your email and App Password in Settings."
 
         msg = MIMEMultipart()
-        from_header = f"{self.settings.from_name} <{self.settings.username}>" if self.settings.from_name else self.settings.username
+        clean_from_name = re.sub(r'[\r\n]+', ' ', self.settings.from_name).strip() if self.settings.from_name else ""
+        from_header = f"{clean_from_name} <{self.settings.username}>" if clean_from_name else self.settings.username
         msg["From"] = from_header
-        msg["To"] = to_email
-        msg["Subject"] = subject
+        msg["To"] = clean_to_email
+        msg["Subject"] = clean_subject
 
         # Attach text body
         msg.attach(MIMEText(body, "plain"))

@@ -17,13 +17,16 @@ class Database:
         if not self._initialized:
             await self._run_init_tables()
             self._initialized = True
-        async with aiosqlite.connect(self.db_path) as db:
+        async with aiosqlite.connect(self.db_path, timeout=30.0) as db:
+            await db.execute("PRAGMA busy_timeout = 30000;")
             db.row_factory = aiosqlite.Row
             yield db
 
     async def _run_init_tables(self) -> None:
-        async with aiosqlite.connect(self.db_path) as db:
+        async with aiosqlite.connect(self.db_path, timeout=30.0) as db:
             await db.execute("PRAGMA journal_mode=WAL;")
+            await db.execute("PRAGMA busy_timeout = 30000;")
+            await db.execute("PRAGMA synchronous = NORMAL;")
             await db.execute("""
                 CREATE TABLE IF NOT EXISTS jobs (
                     id TEXT PRIMARY KEY,
@@ -160,6 +163,14 @@ class Database:
                 json.dumps(app.matched_skills), json.dumps(app.missing_skills),
                 app.notes, app.applied_at, app.created_at
             ))
+            await db.commit()
+
+    async def update_application_status(self, app_id: str, status: str, notes: Optional[str] = None) -> None:
+        async with self.get_connection() as db:
+            if notes is not None:
+                await db.execute("UPDATE applications SET status = ?, notes = ? WHERE id = ?", (status, notes, app_id))
+            else:
+                await db.execute("UPDATE applications SET status = ? WHERE id = ?", (status, app_id))
             await db.commit()
 
     async def get_application_by_id(self, app_id: str) -> Optional[Application]:

@@ -1,4 +1,6 @@
 import os
+import re
+from xml.sax.saxutils import escape as xml_escape
 from datetime import datetime
 from typing import Dict, Any, Optional
 from reportlab.lib.pagesizes import letter
@@ -6,6 +8,19 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, HRFlowable
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 from backend.app.models import UserProfile, Job, MatchAnalysis
+
+def sanitize_untrusted_text(text: str, max_chars: int = 15000) -> str:
+    """Sanitizes untrusted text from external job boards to defend against injection and crashes."""
+    if not text:
+        return ""
+    # Strip HTML comments (frequent vector for hidden prompt injection)
+    cleaned = re.sub(r'<!--.*?-->', '', text, flags=re.DOTALL)
+    # Strip dangerous HTML/XML tags
+    cleaned = re.sub(r'<(script|iframe|style|object|embed|system|prompt)[^>]*>.*?</\1>', '', cleaned, flags=re.IGNORECASE | re.DOTALL)
+    cleaned = re.sub(r'<(script|iframe|style|object|embed|system|prompt)[^>]*>', '', cleaned, flags=re.IGNORECASE)
+    # Remove null bytes and non-printable control characters
+    cleaned = "".join(ch for ch in cleaned if ch == '\n' or ch == '\t' or ch >= ' ')
+    return cleaned[:max_chars].strip()
 
 def generate_cold_email(profile: UserProfile, job: Job, analysis: MatchAnalysis) -> Dict[str, str]:
     matched_skills_str = ", ".join(analysis.matched_skills[:4]) if analysis.matched_skills else "Full Stack & GenAI development"
@@ -100,9 +115,9 @@ def build_cover_letter_pdf(cover_letter_text: str, profile: UserProfile, job: Jo
     
     story = []
     
-    # Header
-    story.append(Paragraph(profile.name.upper(), name_style))
-    contact_line = f"{profile.email} &bull; {profile.phone} &bull; {profile.location}"
+    # Header (XML escaped for ReportLab safe parsing)
+    story.append(Paragraph(xml_escape(profile.name.upper()), name_style))
+    contact_line = f"{xml_escape(profile.email)} &bull; {xml_escape(profile.phone)} &bull; {xml_escape(profile.location)}"
     story.append(Paragraph(contact_line, contact_style))
     story.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor('#CBD5E1'), spaceAfter=16))
     
@@ -116,7 +131,8 @@ def build_cover_letter_pdf(cover_letter_text: str, profile: UserProfile, job: Jo
     for para in paragraphs:
         cleaned_para = para.strip().replace("\n", " ")
         if cleaned_para:
-            story.append(Paragraph(cleaned_para, body_style))
+            safe_para = xml_escape(cleaned_para)
+            story.append(Paragraph(safe_para, body_style))
             
     doc.build(story)
     return output_path
