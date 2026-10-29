@@ -69,6 +69,22 @@ async def generate_round_prep_briefing(
         predicted_questions = RECRUITER_PREDICTED
         key_topics = ["Elevator pitch", "Company value proposition", "Compensation and timeline alignment"]
         tips.append("Be crisp on your current stack and demonstrate genuine knowledge of their latest product launches.")
+    elif round_type == RoundType.EXECUTIVE:
+        predicted_questions = [
+            "Where do you see our architecture evolving over the next 2-3 years?",
+            "How do you balance tech debt with rapid product delivery?",
+            "What technical bet paid off most in your career?"
+        ]
+        key_topics = ["Business alignment", "Strategic technological vision", "Resource trade-offs"]
+        tips.append("Focus on business leverage, cross-functional collaboration, and strategic execution.")
+    elif round_type == RoundType.HIRING_MANAGER:
+        predicted_questions = [
+            "Tell me about a high-leverage project you delivered end-to-end.",
+            "How do you mentor junior and mid-level engineers?",
+            "How do you handle scope creep and shifting sprint deadlines?"
+        ]
+        key_topics = ["Engineering execution", "Team dynamics", "Project ownership"]
+        tips.append("Highlight clear communication, pragmatism, and predictable engineering delivery.")
     else:  # TECH_CODING or default
         predicted_questions = CODING_PREDICTED
         key_topics = ["Time and space complexity (Big-O)", "Edge cases & defensive input checks", "Async Python / TypeScript concurrency primitives"]
@@ -99,7 +115,11 @@ async def generate_thank_you_email(
     round_id: str
 ) -> Dict[str, str]:
     round_obj = await db.get_interview_round_by_id(user_id, round_id)
+    user = await db.get_user_by_id(user_id)
     profile = await db.get_profile()
+
+    candidate_name = (user.name if user and user.name else None) or (profile.name if profile and profile.name else 'Candidate')
+    candidate_email = (user.email if user and user.email else None) or (profile.email if profile and profile.email else '')
 
     interviewer_name = "Hiring Team"
     if round_obj and round_obj.interviewer_info:
@@ -122,8 +142,8 @@ Our discussion regarding distributed systems and scalable product architecture r
 Please feel free to let me know if there are any further questions or follow-up details I can provide. I look forward to the next steps!
 
 Best regards,
-{profile.name or 'Candidate'}
-{profile.email or ''}
+{candidate_name}
+{candidate_email}
 """
     return {
         "subject": subject,

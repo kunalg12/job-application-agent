@@ -62,7 +62,11 @@ async def handle_inbound_recruiter_email(payload: InboundEmailWebhookPayload):
     matched_round: Optional[InterviewRound] = None
 
     for r in existing_rounds:
-        if r.round_number == parsed.round_number or (r.round_title and parsed.round_title and r.round_title.lower() == parsed.round_title.lower()):
+        link_match = bool(parsed.meeting_link and r.meeting_link and parsed.meeting_link == r.meeting_link)
+        title_match = bool(r.round_title and parsed.round_title and r.round_title.strip().lower() == parsed.round_title.strip().lower())
+        numbered_match = bool(parsed.round_number > 1 and r.round_number == parsed.round_number)
+        content_dup = bool(r.raw_input_text and sanitized_text and sanitized_text[:120] in r.raw_input_text)
+        if link_match or title_match or numbered_match or content_dup:
             matched_round = r
             break
 

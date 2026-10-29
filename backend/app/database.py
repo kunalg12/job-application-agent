@@ -326,6 +326,12 @@ class Database:
                 row = await cursor.fetchone()
                 return User(**dict(row)) if row else None
 
+    async def get_user_by_id(self, user_id: str) -> Optional[User]:
+        async with self.get_connection() as db:
+            async with db.execute("SELECT * FROM users WHERE id = ?", (user_id,)) as cursor:
+                row = await cursor.fetchone()
+                return User(**dict(row)) if row else None
+
     async def get_user_by_inbound_token(self, token: str) -> Optional[User]:
         async with self.get_connection() as db:
             async with db.execute("SELECT * FROM users WHERE inbound_email_token = ?", (token,)) as cursor:
@@ -353,6 +359,7 @@ class Database:
                     summary=excluded.summary,
                     candidate_feeling=excluded.candidate_feeling,
                     feedback_received=excluded.feedback_received
+                WHERE interview_rounds.user_id = excluded.user_id
             """, (
                 round_obj.id, round_obj.company_id, round_obj.user_id, round_obj.round_number,
                 round_obj.round_title, round_obj.round_type.value if hasattr(round_obj.round_type, 'value') else round_obj.round_type,
@@ -380,7 +387,7 @@ class Database:
     async def list_interview_rounds_for_company(self, user_id: str, company_id: str) -> List[InterviewRound]:
         async with self.get_connection() as db:
             async with db.execute(
-                "SELECT * FROM interview_rounds WHERE user_id = ? AND company_id = ? ORDER BY round_number ASC, created_at ASC",
+                "SELECT * FROM interview_rounds WHERE user_id = ? AND company_id = ? COLLATE NOCASE ORDER BY round_number ASC, created_at ASC",
                 (user_id, company_id)
             ) as cursor:
                 rows = await cursor.fetchall()

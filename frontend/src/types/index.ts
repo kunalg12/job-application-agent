@@ -89,8 +89,11 @@ export type RoundType =
   | 'TECH_CODING'
   | 'SYSTEM_DESIGN'
   | 'BEHAVIORAL'
+  | 'HIRING_MANAGER'
   | 'MANAGER'
   | 'EXECUTIVE'
+  | 'OFFER'
+  | 'CULTURE_ADD'
   | 'FINAL_ROUND';
 
 export type RoundSource = 'VOICE_NOTE' | 'EMAIL_FORWARD' | 'SCRATCHPAD' | 'MANUAL';

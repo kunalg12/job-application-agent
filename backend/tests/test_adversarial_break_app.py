@@ -168,41 +168,45 @@ async def test_saas_multi_user_voice_concurrency_stress(tmp_path):
     from backend.app.config import settings
     from backend.app.models import User
 
+    old_db = settings.db_path
     db_path = str(tmp_path / "saas_stress.db")
     settings.db_path = db_path
-    db = Database(db_path)
-    await db.init_db()
+    try:
+        db = Database(db_path)
+        await db.init_db()
 
-    # Pre-create 20 users
-    for i in range(20):
-        u = User(
-            id=f"stress-user-{i}",
-            email=f"stress{i}@tenant.dev",
-            name=f"Tenant {i}",
-            inbound_email_token=f"tok-stress-{i}"
-        )
-        await db.create_user(u)
+        # Pre-create 20 users
+        for i in range(20):
+            u = User(
+                id=f"stress-user-{i}",
+                email=f"stress{i}@tenant.dev",
+                name=f"Tenant {i}",
+                inbound_email_token=f"tok-stress-{i}"
+            )
+            await db.create_user(u)
 
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
-        async def submit_voice(idx: int):
-            files = {
-                "file": (f"user_{idx}_audio.webm", b"VOICE_MEMO_CONTENT_BYTES", "audio/webm")
-            }
-            data = {
-                "user_id": f"stress-user-{idx}",
-                "company_name": f"Enterprise-{idx}"
-            }
-            res = await client.post("/api/ingest/voice", files=files, data=data)
-            assert res.status_code == 200
-            return res.json()
+        transport = ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            async def submit_voice(idx: int):
+                files = {
+                    "file": (f"user_{idx}_audio.webm", b"VOICE_MEMO_CONTENT_BYTES", "audio/webm")
+                }
+                data = {
+                    "user_id": f"stress-user-{idx}",
+                    "company_name": f"Enterprise-{idx}"
+                }
+                res = await client.post("/api/ingest/voice", files=files, data=data)
+                assert res.status_code == 200
+                return res.json()
 
-        tasks = [submit_voice(i) for i in range(20)]
-        results = await asyncio.gather(*tasks, return_exceptions=True)
+            tasks = [submit_voice(i) for i in range(20)]
+            results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        for idx, res in enumerate(results):
-            assert not isinstance(res, Exception), f"Concurrent voice upload {idx} failed: {res}"
-            assert res["status"] == "success"
+            for idx, res in enumerate(results):
+                assert not isinstance(res, Exception), f"Concurrent voice upload {idx} failed: {res}"
+                assert res["status"] == "success"
+    finally:
+        settings.db_path = old_db
 
 @pytest.mark.asyncio
 async def test_webhook_prompt_injection_and_sql_injection():

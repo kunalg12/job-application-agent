@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Calendar, Clock, User, Mic, Sparkles, ExternalLink, Award, CheckCircle2 } from 'lucide-react';
+import { X, Clock, User, Mic, Sparkles, ExternalLink, Award } from 'lucide-react';
 import { api } from '../services/api';
 import { InterviewRound } from '../types';
 import { RoundDetailModal } from './RoundDetailModal';
@@ -49,8 +49,12 @@ export const CompanyRoundsTimeline: React.FC<CompanyRoundsTimelineProps> = ({
       case 'BEHAVIORAL':
       case 'CULTURE_ADD':
         return 'bg-apple-purple/15 text-apple-purple border-apple-purple/30';
+      case 'HIRING_MANAGER':
+      case 'MANAGER':
+        return 'bg-apple-teal/15 text-apple-teal border-apple-teal/30';
       case 'EXECUTIVE':
       case 'FINAL_ROUND':
+      case 'OFFER':
         return 'bg-apple-green/15 text-apple-green border-apple-green/30';
       default:
         return 'bg-apple-blue/15 text-apple-blue border-apple-blue/30';

@@ -27,6 +27,13 @@ async def create_or_update_round(
 ):
     db = get_db()
     round_obj.company_id = company_id
+    # Check tenant ownership if modifying existing round
+    if round_obj.id:
+        async with db.get_connection() as conn:
+            async with conn.execute("SELECT user_id FROM interview_rounds WHERE id = ?", (round_obj.id,)) as cursor:
+                row = await cursor.fetchone()
+                if row and row["user_id"] != round_obj.user_id:
+                    raise HTTPException(status_code=403, detail="Forbidden: You do not own this round")
     await db.save_interview_round(round_obj)
     return round_obj
 

@@ -34,6 +34,20 @@ async def transcribe_audio_file(file_path: str) -> str:
         except Exception as e:
             print(f"Gemini transcription failed, falling back: {e}")
 
+    elif openai_key:
+        try:
+            import httpx
+            async with httpx.AsyncClient(timeout=60.0) as client:
+                with open(file_path, "rb") as f:
+                    files = {"file": (os.path.basename(file_path), f, "audio/webm")}
+                    data = {"model": "whisper-1"}
+                    headers = {"Authorization": f"Bearer {openai_key}"}
+                    resp = await client.post("https://api.openai.com/v1/audio/transcriptions", files=files, data=data, headers=headers)
+                    if resp.status_code == 200:
+                        return resp.json().get("text", "").strip()
+        except Exception as e:
+            print(f"OpenAI Whisper transcription failed, falling back: {e}")
+
     # Fallback simulation: Return clean transcript based on common interview notes
     # If the file contains readable ascii text inside (for test fixtures), extract it
     try:

@@ -32,6 +32,14 @@ async def ingest_scratchpad_text(request: TextIngestRequest):
     company_id = request.company_name or parsed.company_name or "Company"
     target_round_id = request.round_id or str(uuid.uuid4())
 
+    # Verify tenant ownership if round_id is specified
+    if request.round_id:
+        async with db.get_connection() as conn:
+            async with conn.execute("SELECT user_id FROM interview_rounds WHERE id = ?", (request.round_id,)) as cursor:
+                row = await cursor.fetchone()
+                if row and row["user_id"] != request.user_id:
+                    raise HTTPException(status_code=403, detail="Forbidden: You do not have permission to modify this round")
+
     round_obj = InterviewRound(
         id=target_round_id,
         company_id=company_id,
@@ -99,6 +107,14 @@ async def ingest_voice_recording(
     parsed = parse_unstructured_interview_note(transcript, source=RoundSource.VOICE_NOTE)
     assigned_company = company_name or parsed.company_name or "Company"
     target_round_id = round_id or str(uuid.uuid4())
+
+    # Verify tenant ownership if round_id is specified
+    if round_id:
+        async with db.get_connection() as conn:
+            async with conn.execute("SELECT user_id FROM interview_rounds WHERE id = ?", (round_id,)) as cursor:
+                row = await cursor.fetchone()
+                if row and row["user_id"] != user_id:
+                    raise HTTPException(status_code=403, detail="Forbidden: You do not have permission to modify this round")
 
     round_obj = InterviewRound(
         id=target_round_id,

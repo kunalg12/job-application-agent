@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Sparkles, Mail, Check, Copy, HelpCircle, AlertTriangle, Calendar, Clock, User, Headphones } from 'lucide-react';
+import { X, Sparkles, Mail, Check, Copy, HelpCircle, AlertTriangle, Clock, User, Headphones } from 'lucide-react';
 import { api } from '../services/api';
 import { InterviewRound, InterviewQuestion, RoundPrepBriefing } from '../types';
 
@@ -30,17 +30,22 @@ export const RoundDetailModal: React.FC<RoundDetailModalProps> = ({
     const fetchDetails = async () => {
       setLoading(true);
       try {
-        const detail = await api.getRoundDetail(roundId);
-        setRound(detail.round);
-        setQuestions(detail.questions || []);
+        const [detailRes, prepRes, noteRes] = await Promise.allSettled([
+          api.getRoundDetail(roundId),
+          api.getRoundPrepBriefing(roundId),
+          api.generateThankYouNote(roundId),
+        ]);
 
-        // Load prep briefing
-        const prep = await api.getRoundPrepBriefing(roundId);
-        setPrepBriefing(prep);
-
-        // Load thank you note draft
-        const note = await api.generateThankYouNote(roundId);
-        setThankYouNote(note);
+        if (detailRes.status === 'fulfilled') {
+          setRound(detailRes.value.round);
+          setQuestions(detailRes.value.questions || []);
+        }
+        if (prepRes.status === 'fulfilled') {
+          setPrepBriefing(prepRes.value);
+        }
+        if (noteRes.status === 'fulfilled') {
+          setThankYouNote(noteRes.value);
+        }
       } catch (err) {
         console.error('Failed to load round details:', err);
       } finally {

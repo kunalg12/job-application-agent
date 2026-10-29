@@ -106,10 +106,24 @@ async def test_complete_saas_interview_notetaker_multi_tenant_flow():
         leak_attempt = await client.get(f"/api/rounds/{round_a1_id}", params={"user_id": user_b.id})
         assert leak_attempt.status_code == 404
 
+        # User B attempts to hijack / overwrite User A's round -> 403 Forbidden!
+        hijack_attempt = await client.post("/api/ingest/text", json={
+            "raw_text": "Malicious takeover attempt",
+            "user_id": user_b.id,
+            "round_id": round_a1_id
+        })
+        assert hijack_attempt.status_code == 403
+
         # User A accesses their own round detail -> 200 with questions
         valid_detail = await client.get(f"/api/rounds/{round_a1_id}", params={"user_id": user_a.id})
         assert valid_detail.status_code == 200
         assert valid_detail.json()["round"]["id"] == round_a1_id
+
+        # Verify static audio serving works via /audio route
+        audio_url = voice_a_json["round"]["audio_url"]
+        audio_serve_res = await client.get(audio_url)
+        assert audio_serve_res.status_code == 200
+        assert len(audio_serve_res.content) > 0
 
         # 6. Generate round prep briefing for Tenant A
         prep_res = await client.get(f"/api/rounds/{round_a1_id}/prep", params={"user_id": user_a.id})

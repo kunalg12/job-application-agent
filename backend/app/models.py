@@ -103,6 +103,8 @@ class RoundType(str, Enum):
     HIRING_MANAGER = "HIRING_MANAGER"
     EXECUTIVE = "EXECUTIVE"
     OFFER = "OFFER"
+    CULTURE_ADD = "CULTURE_ADD"
+    FINAL_ROUND = "FINAL_ROUND"
 
 class RoundSource(str, Enum):
     VOICE_NOTE = "VOICE_NOTE"

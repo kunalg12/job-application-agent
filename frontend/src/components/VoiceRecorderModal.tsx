@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Mic, Square, Play, AlertCircle, FileText, CheckCircle2, X, Sparkles, Building2 } from 'lucide-react';
+import { Mic, Square, AlertCircle, FileText, CheckCircle2, X, Sparkles, Building2 } from 'lucide-react';
 import { AudioRecorder } from '../services/audioRecorder';
 import { api } from '../services/api';
 
@@ -96,8 +96,9 @@ export const VoiceRecorderModal: React.FC<VoiceRecorderModalProps> = ({
       try {
         setIsProcessing(true);
         const audioBlob = await recorderRef.current.stop();
+        const ext = audioBlob.type.includes('mp4') || audioBlob.type.includes('m4a') ? '.m4a' : '.webm';
         const formData = new FormData();
-        formData.append('file', audioBlob, 'interview_voice_note.webm');
+        formData.append('file', audioBlob, `interview_voice_note${ext}`);
         formData.append('user_id', 'default-user');
         if (companyName) {
           formData.append('company_name', companyName);

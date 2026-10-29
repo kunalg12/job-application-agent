@@ -70,9 +70,30 @@ async def test_prep_briefing_and_rounds_crud():
         # Should incorporate previous round feedback or round type context
         assert "stripe" in prep_data["company_name"].lower()
 
-        # 3. Generate thank you note for round 1
+        # 3. Generate thank you note for round 1 - must use tenant user name
         thank_res = await client.post("/api/rounds/round-test-1/thank-you", params={"user_id": user_id})
         assert thank_res.status_code == 200
         thank_data = thank_res.json()
         assert "Alice" in thank_data["body"] or "Stripe" in thank_data["body"]
+        assert "Candidate K" in thank_data["body"]
         assert "subject" in thank_data
+
+        # 4. Case-insensitive company rounds query
+        res_nocase = await client.get("/api/companies/stripe/rounds", params={"user_id": user_id})
+        assert res_nocase.status_code == 200
+        assert len(res_nocase.json()) == 2
+
+        # 5. Verify prep briefing works across all round types without crashing
+        for r_type in [RoundType.TECH_CODING, RoundType.BEHAVIORAL, RoundType.HIRING_MANAGER, RoundType.EXECUTIVE, RoundType.OFFER, RoundType.CULTURE_ADD]:
+            round_var = InterviewRound(
+                id=f"round-{r_type.value}",
+                company_id="Stripe",
+                user_id=user_id,
+                round_number=3,
+                round_title=f"Round 3: {r_type.value}",
+                round_type=r_type
+            )
+            await db.save_interview_round(round_var)
+            prep_r = await client.get(f"/api/rounds/{round_var.id}/prep", params={"user_id": user_id})
+            assert prep_r.status_code == 200
+            assert len(prep_r.json()["predicted_questions"]) >= 2
