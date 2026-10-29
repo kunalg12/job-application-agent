@@ -1,16 +1,20 @@
-import React from 'react';
-import { Mail, Globe, CheckCircle2, Clock, AlertCircle, XCircle, Award } from 'lucide-react';
+import React, { useState } from 'react';
+import { Mail, Globe, CheckCircle2, Clock, AlertCircle, XCircle, Award, Sparkles } from 'lucide-react';
 import { Application } from '../types';
+import { CompanyRoundsTimeline } from './CompanyRoundsTimeline';
 
 interface ApplicationsTrackerProps {
   applications: Application[];
   onUpdateStatus: (appId: string, status: string) => Promise<void>;
+  onOpenVoiceRecorder?: (company: string) => void;
 }
 
 export const ApplicationsTracker: React.FC<ApplicationsTrackerProps> = ({
   applications,
   onUpdateStatus,
+  onOpenVoiceRecorder,
 }) => {
+  const [timelineCompany, setTimelineCompany] = useState<string | null>(null);
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'EMAIL_SENT':
@@ -88,11 +92,24 @@ export const ApplicationsTracker: React.FC<ApplicationsTrackerProps> = ({
             {applications.map((app) => (
               <tr key={app.id} className="hover:bg-[rgba(120,120,128,0.05)] transition-colors">
                 <td className="py-3.5 px-6">
-                  <div className="font-semibold text-black dark:text-white text-[14px]">
-                    {app.company}
-                  </div>
-                  <div className="text-[12px] text-[rgba(60,60,67,0.65)] dark:text-[rgba(235,235,245,0.65)] truncate max-w-xs">
-                    {app.job_title}
+                  <div className="flex items-center justify-between gap-2">
+                    <div>
+                      <div className="font-semibold text-black dark:text-white text-[14px]">
+                        {app.company}
+                      </div>
+                      <div className="text-[12px] text-[rgba(60,60,67,0.65)] dark:text-[rgba(235,235,245,0.65)] truncate max-w-xs">
+                        {app.job_title}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setTimelineCompany(app.company)}
+                      className="btn-apple-secondary text-[11px] px-2 py-1 gap-1 flex items-center text-[#007AFF] dark:text-[#0A84FF] hover:bg-[#007AFF]/10 cursor-pointer shrink-0"
+                      title="View Interview Rounds & AI Prep Briefing"
+                    >
+                      <Sparkles className="w-3 h-3 text-[#007AFF] dark:text-[#0A84FF]" />
+                      <span>Rounds CRM</span>
+                    </button>
                   </div>
                 </td>
                 
@@ -153,6 +170,17 @@ export const ApplicationsTracker: React.FC<ApplicationsTrackerProps> = ({
           </div>
         )}
       </div>
+
+      {/* Company Interview Rounds Timeline CRM Modal */}
+      <CompanyRoundsTimeline
+        isOpen={!!timelineCompany}
+        onClose={() => setTimelineCompany(null)}
+        companyName={timelineCompany || ''}
+        onOpenVoiceRecorder={(company) => {
+          setTimelineCompany(null);
+          onOpenVoiceRecorder?.(company);
+        }}
+      />
     </div>
   );
 };

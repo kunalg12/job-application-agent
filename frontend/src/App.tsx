@@ -215,6 +215,10 @@ export const App: React.FC = () => {
               onUpdateStatus={async (appId, status) => {
                 await handleUpdateApplication(appId, { status: status as any });
               }}
+              onOpenVoiceRecorder={(company) => {
+                setSelectedCompanyForRecorder(company);
+                setVoiceRecorderOpen(true);
+              }}
             />
           )}
         </main>
