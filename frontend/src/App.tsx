@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { MetricsBar } from './components/MetricsBar';
+import { JobFeed } from './components/JobFeed';
+import { ReviewQueue } from './components/ReviewQueue';
 import { api } from './services/api';
 import { Job, Application, UserProfile, AppSettings, DashboardMetrics } from './types';
 
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'feed' | 'queue' | 'tracker'>('feed');
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [applications, setApplications] = useState<Application[]>([]);
@@ -15,11 +18,13 @@ export const App: React.FC = () => {
 
   const loadData = async () => {
     try {
-      const [m, s, a] = await Promise.all([
+      const [j, m, s, a] = await Promise.all([
+        api.getJobs(),
         api.getMetrics(),
         api.getSettings(),
         api.getApplications(),
       ]);
+      setJobs(j);
       setMetrics(m);
       setSettings(s);
       setApplications(a);
@@ -46,6 +51,38 @@ export const App: React.FC = () => {
     }
   };
 
+  const handleStageJob = async (jobId: string) => {
+    try {
+      const app = await api.stageJob(jobId);
+      setApplications((prev) => [app, ...prev.filter((a) => a.id !== app.id)]);
+      setActiveTab('queue');
+      loadData();
+    } catch (err) {
+      console.error('Failed to stage job:', err);
+    }
+  };
+
+  const handleImportJob = async (jobData: any) => {
+    await api.importJob(jobData);
+    await loadData();
+  };
+
+  const handleSendEmail = async (appId: string, payload: any) => {
+    await api.sendEmail(appId, payload);
+    await loadData();
+  };
+
+  const handleAutofill = async (appId: string) => {
+    await api.autofillApplication(appId, false);
+    await loadData();
+  };
+
+  const handleUpdateApplication = async (appId: string, payload: any) => {
+    await api.updateApplication(appId, payload);
+    await loadData();
+  };
+
+  const stagedJobIds = new Set(applications.map((a) => a.job_id));
   const queuedApps = applications.filter(a => a.status === 'STAGED' || a.status === 'ACTION_REQUIRED');
 
   return (
@@ -63,32 +100,31 @@ export const App: React.FC = () => {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1">
         <MetricsBar metrics={metrics} queuedCount={queuedApps.length} />
 
-        {/* Placeholder / Dynamic Tab View */}
-        <div id="tab-container">
-          {activeTab === 'feed' && (
-            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xs">
-              <h2 className="text-lg font-semibold text-slate-900 mb-1">Live Job Feed</h2>
-              <p className="text-sm text-slate-500 mb-4">Ingested tech jobs matched against your resume.</p>
-              <div className="text-center py-12 text-slate-400">Loading job feed components...</div>
-            </div>
-          )}
+        {activeTab === 'feed' && (
+          <JobFeed
+            jobs={jobs}
+            onStageJob={handleStageJob}
+            onImportJob={handleImportJob}
+            stagedJobIds={stagedJobIds}
+          />
+        )}
 
-          {activeTab === 'queue' && (
-            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xs">
-              <h2 className="text-lg font-semibold text-slate-900 mb-1">Review & Apply Queue</h2>
-              <p className="text-sm text-slate-500 mb-4">Stage high-match applications for 1-click review and email dispatch.</p>
-              <div className="text-center py-12 text-slate-400">Loading review queue components...</div>
-            </div>
-          )}
+        {activeTab === 'queue' && (
+          <ReviewQueue
+            applications={applications}
+            onSendEmail={handleSendEmail}
+            onAutofill={handleAutofill}
+            onUpdateApplication={handleUpdateApplication}
+          />
+        )}
 
-          {activeTab === 'tracker' && (
-            <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xs">
-              <h2 className="text-lg font-semibold text-slate-900 mb-1">Applications Tracker</h2>
-              <p className="text-sm text-slate-500 mb-4">Full audit history of sent emails and submitted applications.</p>
-              <div className="text-center py-12 text-slate-400">Loading applications tracker...</div>
-            </div>
-          )}
-        </div>
+        {activeTab === 'tracker' && (
+          <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xs">
+            <h2 className="text-lg font-semibold text-slate-900 mb-1">Applications Tracker</h2>
+            <p className="text-sm text-slate-500 mb-4">Full audit history of sent emails and submitted applications.</p>
+            <div className="text-center py-12 text-slate-400">Loading applications tracker...</div>
+          </div>
+        )}
       </main>
     </div>
   );
